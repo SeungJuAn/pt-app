@@ -197,6 +197,19 @@ export const handlers = [
     return HttpResponse.json(sorted);
   }),
 
+  http.get(`${API}/enrollments/:id`, ({ params }) => {
+    const e = (db.enrollments as EnrollmentWithMember[]).find(
+      (x) => x.id === params.id,
+    );
+    if (!e) {
+      return HttpResponse.json(
+        { message: '등록권을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json(enrichEnrollment(e));
+  }),
+
   http.post(`${API}/enrollments`, async ({ request }) => {
     const dto = (await request.json()) as CreateEnrollmentDto;
     if (!dto.memberId || !db.members.some((m) => m.id === dto.memberId)) {
@@ -275,35 +288,115 @@ export const handlers = [
   }),
 
   http.post(`${API}/sessions`, async ({ request }) => {
-    const dto = (await request.json()) as { enrollmentId: string };
-    return HttpResponse.json(
-      {
-        id: uuid(),
-        dayNumber: 1,
-        date: new Date().toISOString().slice(0, 10),
-        note: null,
-        createdAt: new Date().toISOString(),
-        dailyCheck: {
-          sleep: false,
-          diet: false,
-          alcoholFree: false,
-          defecation: false,
-          hydration: false,
-          condition: null,
-          cardioMinutes: 0,
-          steps: 0,
-        },
-        bodyMetric: {
-          weightKg: '0',
-          skeletalMuscleKg: '0',
-          bodyFatKg: '0',
-          bodyFatPercent: '0',
-        },
-        exerciseEntries: [],
-        enrollment: { id: dto.enrollmentId, totalSessions: 0, status: 'ACTIVE' },
-      },
-      { status: 201 },
+    const dto = (await request.json()) as {
+      enrollmentId: string;
+      date: string;
+      dayNumber?: number;
+      note?: string;
+      dailyCheck?: Partial<import('../types').DailyCheck>;
+      bodyMetric?: Partial<import('../types').BodyMetric>;
+      exerciseEntries: Array<{
+        exerciseId: string;
+        bodyPartId?: string;
+        order: number;
+        sets: Array<{
+          setNumber: number;
+          weightKg?: string;
+          reps: number;
+        }>;
+      }>;
+    };
+    const enr = (db.enrollments as EnrollmentWithMember[]).find(
+      (e) => e.id === dto.enrollmentId,
     );
+    if (!enr) {
+      return HttpResponse.json(
+        { message: '등록권을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+    const sessionsForEnr = (db.sessions as SessionWithMeta[]).filter(
+      (s) => s.enrollmentId === dto.enrollmentId,
+    );
+    const dayNumber = dto.dayNumber ?? sessionsForEnr.length + 1;
+    const entries = (dto.exerciseEntries ?? []).map((e) => {
+      const exercise =
+        db.exercises.find((x) => x.id === e.exerciseId) ?? {
+          id: e.exerciseId,
+          name: '알 수 없는 운동',
+          cautionTemplate: null,
+          defaultBodyPart: null,
+          createdAt: new Date().toISOString(),
+        };
+      const bodyPart = e.bodyPartId
+        ? db.bodyParts.find((b) => b.id === e.bodyPartId) ?? null
+        : exercise.defaultBodyPart;
+      return {
+        id: uuid(),
+        order: e.order,
+        exercise,
+        bodyPart,
+        sets: e.sets.map((s) => ({
+          id: uuid(),
+          setNumber: s.setNumber,
+          weightKg: s.weightKg ?? '0',
+          reps: s.reps,
+        })),
+      };
+    });
+    const saved: SessionWithMeta = {
+      id: uuid(),
+      memberId: enr.memberId,
+      enrollmentId: dto.enrollmentId,
+      dayNumber,
+      date: dto.date,
+      note: dto.note ?? null,
+      createdAt: new Date().toISOString(),
+      dailyCheck: {
+        sleep: dto.dailyCheck?.sleep ?? false,
+        diet: dto.dailyCheck?.diet ?? false,
+        alcoholFree: dto.dailyCheck?.alcoholFree ?? false,
+        defecation: dto.dailyCheck?.defecation ?? false,
+        hydration: dto.dailyCheck?.hydration ?? false,
+        condition: dto.dailyCheck?.condition ?? null,
+        cardioMinutes: dto.dailyCheck?.cardioMinutes ?? 0,
+        steps: dto.dailyCheck?.steps ?? 0,
+      },
+      bodyMetric: {
+        weightKg: dto.bodyMetric?.weightKg ?? '0',
+        skeletalMuscleKg: dto.bodyMetric?.skeletalMuscleKg ?? '0',
+        bodyFatKg: dto.bodyMetric?.bodyFatKg ?? '0',
+        bodyFatPercent: dto.bodyMetric?.bodyFatPercent ?? '0',
+      },
+      exerciseEntries: entries,
+    };
+    (db.sessions as SessionWithMeta[]).push(saved);
+    // usedSessions도 반영
+    enr.usedSessions = (enr.usedSessions ?? 0) + 1;
+    const { memberId: _mid, enrollmentId: _eid, ...response } = saved;
+    void _mid;
+    void _eid;
+    return HttpResponse.json(response, { status: 201 });
+  }),
+
+  http.delete(`${API}/sessions/:id`, ({ params }) => {
+    const list = db.sessions as SessionWithMeta[];
+    const i = list.findIndex((s) => s.id === params.id);
+    if (i < 0) {
+      return HttpResponse.json(
+        { message: '세션을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+    const removed = list[i];
+    list.splice(i, 1);
+    const enr = (db.enrollments as EnrollmentWithMember[]).find(
+      (e) => e.id === removed.enrollmentId,
+    );
+    if (enr && enr.usedSessions) {
+      enr.usedSessions = Math.max(0, enr.usedSessions - 1);
+    }
+    return new HttpResponse(null, { status: 204 });
   }),
 
   // ===== Body parts / Exercises =====
