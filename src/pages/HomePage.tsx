@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActionIcon,
   Badge,
@@ -18,7 +18,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { Calendar, DatePickerInput, TimeInput } from '@mantine/dates';
+import { Calendar, DatePickerInput, TimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -84,7 +84,6 @@ export function HomePage() {
     historyOpened,
     { open: openHistory, close: closeHistory },
   ] = useDisclosure(false);
-  const timeRef = useRef<HTMLInputElement>(null);
 
   const showHistory = (id: string) => {
     setHistoryMemberId(id);
@@ -137,7 +136,8 @@ export function HomePage() {
     },
     validate: {
       date: (v) => (v ? null : '날짜를 선택하세요'),
-      time: (v) => (/^\d{2}:\d{2}$/.test(v) ? null : '시간을 입력하세요'),
+      time: (v) =>
+        /^\d{2}:\d{2}(?::\d{2})?$/.test(v) ? null : '시간을 입력하세요',
       durationMin: (v) =>
         typeof v === 'number' && v >= 10 && v <= 600
           ? null
@@ -211,7 +211,9 @@ export function HomePage() {
 
   const handleSubmit = (values: FormValues) => {
     if (!values.date) return;
-    const [hh, mm] = values.time.split(':').map(Number);
+    const parts = values.time.split(':').map(Number);
+    const hh = parts[0] ?? 0;
+    const mm = parts[1] ?? 0;
     const startAt = dayjs(values.date)
       .hour(hh)
       .minute(mm)
@@ -505,10 +507,26 @@ export function HomePage() {
                 required
                 {...form.getInputProps('date')}
               />
-              <TimeInput
-                ref={timeRef}
+              <TimePicker
                 label="시작 시간"
                 required
+                format="24h"
+                withDropdown
+                minutesStep={5}
+                hoursStep={1}
+                presets={[
+                  '06:00',
+                  '07:00',
+                  '09:00',
+                  '10:00',
+                  '12:00',
+                  '14:00',
+                  '15:00',
+                  '18:00',
+                  '19:00',
+                  '20:00',
+                  '21:00',
+                ]}
                 {...form.getInputProps('time')}
               />
             </Group>

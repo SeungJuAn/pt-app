@@ -18,6 +18,10 @@ import type {
 } from '../types';
 
 type EnrollmentWithMember = Enrollment & { memberId: string };
+type SessionWithMeta = import('../types').Session & {
+  memberId: string;
+  enrollmentId: string;
+};
 
 const API =
   (import.meta.env.VITE_API_URL as string | undefined) ??
@@ -250,10 +254,26 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // ===== Sessions (demo: empty lists, stubs) =====
-  http.get(`${API}/sessions`, () => {
-    return HttpResponse.json([]);
+  // ===== Sessions =====
+  http.get(`${API}/sessions`, ({ request }) => {
+    const url = new URL(request.url);
+    const memberId = url.searchParams.get('memberId');
+    const enrollmentId = url.searchParams.get('enrollmentId');
+    let list = db.sessions as SessionWithMeta[];
+    if (memberId) list = list.filter((s) => s.memberId === memberId);
+    if (enrollmentId)
+      list = list.filter((s) => s.enrollmentId === enrollmentId);
+    const sorted = list
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map(({ memberId: _m, enrollmentId: _e, ...rest }) => {
+        void _m;
+        void _e;
+        return rest;
+      });
+    return HttpResponse.json(sorted);
   }),
+
   http.post(`${API}/sessions`, async ({ request }) => {
     const dto = (await request.json()) as { enrollmentId: string };
     return HttpResponse.json(
@@ -286,9 +306,9 @@ export const handlers = [
     );
   }),
 
-  // ===== Body parts / Exercises (demo: empty) =====
-  http.get(`${API}/body-parts`, () => HttpResponse.json([])),
-  http.get(`${API}/exercises`, () => HttpResponse.json([])),
+  // ===== Body parts / Exercises =====
+  http.get(`${API}/body-parts`, () => HttpResponse.json(db.bodyParts)),
+  http.get(`${API}/exercises`, () => HttpResponse.json(db.exercises)),
 
   // ===== Appointments =====
   http.get(`${API}/appointments`, ({ request }) => {
