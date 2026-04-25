@@ -31,7 +31,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { enrollmentsApi } from '../api/enrollments';
 import { membersApi } from '../api/members';
 import { sessionsApi } from '../api/sessions';
@@ -56,8 +56,18 @@ interface EnrollmentFormValues {
   startedAt: Date | null;
 }
 
+const PERF_META: Record<
+  'GOOD' | 'NORMAL' | 'BAD',
+  { label: string; color: string }
+> = {
+  GOOD: { label: '👍 좋음', color: 'teal' },
+  NORMAL: { label: '🆗 보통', color: 'gray' },
+  BAD: { label: '👎 나쁨', color: 'red' },
+};
+
 export function MemberDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [opened, { open, close }] = useDisclosure(false);
   const [
@@ -362,24 +372,43 @@ export function MemberDetailPage() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>날짜</Table.Th>
-              <Table.Th>Day</Table.Th>
-              <Table.Th>운동 수</Table.Th>
+              <Table.Th w={70}>Day</Table.Th>
+              <Table.Th w={90}>운동 수</Table.Th>
+              <Table.Th w={120}>수행 평가</Table.Th>
               <Table.Th>한줄평</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {sessionsQuery.data?.map((s) => (
-              <Table.Tr key={s.id}>
-                <Table.Td>{dayjs(s.date).format('YYYY-MM-DD')}</Table.Td>
-                <Table.Td>{s.dayNumber}</Table.Td>
-                <Table.Td>{s.exerciseEntries?.length ?? 0}</Table.Td>
-                <Table.Td>
-                  <Text size="sm" lineClamp={1}>
-                    {s.note ?? '-'}
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            ))}
+            {sessionsQuery.data?.map((s) => {
+              const meta = s.performance ? PERF_META[s.performance] : null;
+              return (
+                <Table.Tr
+                  key={s.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/sessions/${s.id}`)}
+                >
+                  <Table.Td>{dayjs(s.date).format('YYYY-MM-DD')}</Table.Td>
+                  <Table.Td>{s.dayNumber}</Table.Td>
+                  <Table.Td>{s.exerciseEntries?.length ?? 0}종</Table.Td>
+                  <Table.Td>
+                    {meta ? (
+                      <Badge size="sm" variant="light" color={meta.color}>
+                        {meta.label}
+                      </Badge>
+                    ) : (
+                      <Text size="xs" c="dimmed">
+                        -
+                      </Text>
+                    )}
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" lineClamp={1}>
+                      {s.note ?? '-'}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
           </Table.Tbody>
         </Table>
       )}

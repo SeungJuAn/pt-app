@@ -121,11 +121,14 @@ export interface ExerciseEntry {
   sets: SetRecord[];
 }
 
+export type SessionPerformance = 'GOOD' | 'NORMAL' | 'BAD';
+
 export interface Session {
   id: string;
   dayNumber: number;
   date: string;
   note: string | null;
+  performance: SessionPerformance | null;
   createdAt: string;
   dailyCheck: DailyCheck;
   bodyMetric: BodyMetric;
@@ -151,6 +154,7 @@ export interface CreateSessionDto {
   date: string;
   dayNumber?: number;
   note?: string;
+  performance?: SessionPerformance;
   dailyCheck?: Partial<DailyCheck>;
   bodyMetric?: Partial<BodyMetric>;
   exerciseEntries: CreateExerciseEntryDto[];

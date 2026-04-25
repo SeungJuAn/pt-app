@@ -9,6 +9,7 @@ import {
   Group,
   Loader,
   NumberInput,
+  SegmentedControl,
   Select,
   SimpleGrid,
   Stack,
@@ -37,7 +38,7 @@ import { enrollmentsApi } from '../api/enrollments';
 import { exercisesApi } from '../api/exercises';
 import { sessionsApi } from '../api/sessions';
 import { estimateOneRM, totalVolume } from '../lib/oneRm';
-import type { CreateSessionDto } from '../types';
+import type { CreateSessionDto, SessionPerformance } from '../types';
 
 interface SetInput {
   tempId: string;
@@ -88,6 +89,7 @@ export function SessionCreatePage() {
   const [date, setDate] = useState<Date | null>(new Date());
   const [sessionBodyPartId, setSessionBodyPartId] = useState<string>('');
   const [note, setNote] = useState('');
+  const [performance, setPerformance] = useState<SessionPerformance | ''>('');
   const [check, setCheck] = useState({
     sleep: false,
     diet: false,
@@ -232,6 +234,7 @@ export function SessionCreatePage() {
       enrollmentId,
       date: dayjs(date).format('YYYY-MM-DD'),
       note: note.trim() || undefined,
+      performance: performance || undefined,
       dailyCheck: {
         ...check,
         condition: condition || null,
@@ -606,16 +609,30 @@ export function SessionCreatePage() {
       </Grid>
 
       <Card withBorder padding="md">
-        <Title order={5} mb="sm">
-          📝 한줄평
-        </Title>
-        <Textarea
-          placeholder="오늘 자세/다음 수업 계획 등"
-          autosize
-          minRows={2}
-          value={note}
-          onChange={(e) => setNote(e.currentTarget.value)}
-        />
+        <Stack gap="sm">
+          <Group justify="space-between" align="center" wrap="wrap">
+            <Title order={5}>🏋️ 운동 수행 능력 평가</Title>
+            <SegmentedControl
+              value={performance || ''}
+              onChange={(v) => setPerformance(v as SessionPerformance | '')}
+              data={[
+                { value: '', label: '미평가' },
+                { value: 'GOOD', label: '👍 좋음' },
+                { value: 'NORMAL', label: '🆗 보통' },
+                { value: 'BAD', label: '👎 나쁨' },
+              ]}
+            />
+          </Group>
+          <Divider />
+          <Title order={5}>📝 한줄평</Title>
+          <Textarea
+            placeholder="오늘 자세/다음 수업 계획 등"
+            autosize
+            minRows={2}
+            value={note}
+            onChange={(e) => setNote(e.currentTarget.value)}
+          />
+        </Stack>
       </Card>
 
       <Group justify="flex-end">

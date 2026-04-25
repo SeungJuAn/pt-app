@@ -287,12 +287,47 @@ export const handlers = [
     return HttpResponse.json(sorted);
   }),
 
+  http.get(`${API}/sessions/:id`, ({ params }) => {
+    const list = db.sessions as SessionWithMeta[];
+    const s = list.find((x) => x.id === params.id);
+    if (!s) {
+      return HttpResponse.json(
+        { message: '세션을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+    const enrollment = (db.enrollments as EnrollmentWithMember[]).find(
+      (e) => e.id === s.enrollmentId,
+    );
+    const member = enrollment
+      ? db.members.find((m) => m.id === enrollment.memberId) ?? undefined
+      : undefined;
+    const { memberId: _m, enrollmentId: _e, ...rest } = s;
+    void _m;
+    void _e;
+    return HttpResponse.json({
+      ...rest,
+      enrollment: enrollment
+        ? {
+            id: enrollment.id,
+            totalSessions: enrollment.totalSessions,
+            startedAt: enrollment.startedAt,
+            status: enrollment.status,
+            createdAt: enrollment.createdAt,
+            usedSessions: enrollment.usedSessions,
+            member,
+          }
+        : undefined,
+    });
+  }),
+
   http.post(`${API}/sessions`, async ({ request }) => {
     const dto = (await request.json()) as {
       enrollmentId: string;
       date: string;
       dayNumber?: number;
       note?: string;
+      performance?: 'GOOD' | 'NORMAL' | 'BAD';
       dailyCheck?: Partial<import('../types').DailyCheck>;
       bodyMetric?: Partial<import('../types').BodyMetric>;
       exerciseEntries: Array<{
@@ -351,6 +386,7 @@ export const handlers = [
       dayNumber,
       date: dto.date,
       note: dto.note ?? null,
+      performance: dto.performance ?? null,
       createdAt: new Date().toISOString(),
       dailyCheck: {
         sleep: dto.dailyCheck?.sleep ?? false,

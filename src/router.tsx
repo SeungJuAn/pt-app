@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { MembersPage } from './pages/MembersPage';
 import { MemberDetailPage } from './pages/MemberDetailPage';
 import { SessionCreatePage } from './pages/SessionCreatePage';
+import { SessionDetailPage } from './pages/SessionDetailPage';
 import { ExercisesPlaceholder } from './pages/ExercisesPlaceholder';
 
 const baseUrl = import.meta.env.BASE_URL ?? '/';
@@ -22,6 +23,7 @@ export const router = createBrowserRouter(
           path: 'enrollments/:enrollmentId/sessions/new',
           Component: SessionCreatePage,
         },
+        { path: 'sessions/:id', Component: SessionDetailPage },
         { path: 'exercises', Component: ExercisesPlaceholder },
       ],
     },

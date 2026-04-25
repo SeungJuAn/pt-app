@@ -164,11 +164,19 @@ function makeSession(opts: {
   muscleKg: string;
   fatPercent: string;
   condition: string;
+  performance?: 'GOOD' | 'NORMAL' | 'BAD';
   entries: ExerciseEntry[];
 }): SessionWithMeta {
   const d = new Date();
   d.setDate(d.getDate() + opts.offsetDays);
   const dateStr = d.toISOString().slice(0, 10);
+  // 시드용 결정적 분포: 5의 배수=BAD, 3의 배수=NORMAL, 그 외 GOOD
+  const autoPerf: 'GOOD' | 'NORMAL' | 'BAD' =
+    opts.dayNumber % 5 === 0
+      ? 'BAD'
+      : opts.dayNumber % 3 === 0
+        ? 'NORMAL'
+        : 'GOOD';
   return {
     id: uuid(),
     memberId: opts.memberId,
@@ -176,6 +184,7 @@ function makeSession(opts: {
     dayNumber: opts.dayNumber,
     date: dateStr,
     note: opts.note,
+    performance: opts.performance ?? autoPerf,
     createdAt: d.toISOString(),
     dailyCheck: {
       sleep: true,

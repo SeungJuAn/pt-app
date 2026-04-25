@@ -13,11 +13,24 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { enrollmentsApi } from '../api/enrollments';
 import { membersApi } from '../api/members';
 import { sessionsApi } from '../api/sessions';
-import type { Enrollment, EnrollmentStatus } from '../types';
+import type {
+  Enrollment,
+  EnrollmentStatus,
+  SessionPerformance,
+} from '../types';
+
+const PERF_META: Record<
+  SessionPerformance,
+  { label: string; color: string }
+> = {
+  GOOD: { label: '👍 좋음', color: 'teal' },
+  NORMAL: { label: '🆗 보통', color: 'gray' },
+  BAD: { label: '👎 나쁨', color: 'red' },
+};
 
 const STATUS_META: Record<
   EnrollmentStatus,
@@ -35,6 +48,7 @@ interface Props {
 }
 
 export function MemberHistoryModal({ memberId, opened, onClose }: Props) {
+  const navigate = useNavigate();
   const memberQuery = useQuery({
     queryKey: ['members', memberId],
     queryFn: () => membersApi.get(memberId as string),
@@ -173,26 +187,54 @@ export function MemberHistoryModal({ memberId, opened, onClose }: Props) {
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>날짜</Table.Th>
-                  <Table.Th w={70}>Day</Table.Th>
-                  <Table.Th w={80}>운동</Table.Th>
+                  <Table.Th w={60}>Day</Table.Th>
+                  <Table.Th w={70}>운동</Table.Th>
+                  <Table.Th w={100}>평가</Table.Th>
                   <Table.Th>한줄평</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {sessions.slice(0, 10).map((s) => (
-                  <Table.Tr key={s.id}>
-                    <Table.Td>
-                      {dayjs(s.date).format('YYYY-MM-DD')}
-                    </Table.Td>
-                    <Table.Td>{s.dayNumber}</Table.Td>
-                    <Table.Td>{s.exerciseEntries?.length ?? 0}종</Table.Td>
-                    <Table.Td>
-                      <Text size="sm" lineClamp={1}>
-                        {s.note ?? '-'}
-                      </Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
+                {sessions.slice(0, 10).map((s) => {
+                  const meta = s.performance
+                    ? PERF_META[s.performance]
+                    : null;
+                  return (
+                    <Table.Tr
+                      key={s.id}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        onClose();
+                        navigate(`/sessions/${s.id}`);
+                      }}
+                    >
+                      <Table.Td>
+                        {dayjs(s.date).format('YYYY-MM-DD')}
+                      </Table.Td>
+                      <Table.Td>{s.dayNumber}</Table.Td>
+                      <Table.Td>{s.exerciseEntries?.length ?? 0}종</Table.Td>
+                      <Table.Td>
+                        {meta ? (
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            color={meta.color}
+                          >
+                            {meta.label}
+                          </Badge>
+                        ) : (
+                          <Text size="xs" c="dimmed">
+                            -
+                          </Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" lineClamp={1}>
+                          {s.note ?? '-'}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
               </Table.Tbody>
             </Table>
           )}
