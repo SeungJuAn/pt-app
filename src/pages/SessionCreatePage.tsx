@@ -31,12 +31,12 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { bodyPartsApi } from '../api/body-parts';
 import { enrollmentsApi } from '../api/enrollments';
 import { exercisesApi } from '../api/exercises';
-import { sessionsApi } from '../api/sessions';
+import { sessionsApi, type UpdateSessionDto } from '../api/sessions';
 import { estimateOneRM, totalVolume } from '../lib/oneRm';
 import type { CreateSessionDto, SessionPerformance } from '../types';
 
@@ -66,14 +66,29 @@ const CONDITION_OPTIONS = [
 ];
 
 export function SessionCreatePage() {
-  const { enrollmentId = '' } = useParams<{ enrollmentId: string }>();
+  const { enrollmentId: enrollmentIdParam, sessionId } = useParams<{
+    enrollmentId?: string;
+    sessionId?: string;
+  }>();
+  const isEdit = !!sessionId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // edit 모드일 땐 기존 세션에서 enrollmentId 가져옴
+  const sessionQuery = useQuery({
+    queryKey: ['session', sessionId],
+    queryFn: () => sessionsApi.get(sessionId as string),
+    enabled: isEdit,
+  });
+
+  const resolvedEnrollmentId = isEdit
+    ? sessionQuery.data?.enrollment?.id ?? ''
+    : enrollmentIdParam ?? '';
+
   const enrollmentQuery = useQuery({
-    queryKey: ['enrollment', enrollmentId],
-    queryFn: () => enrollmentsApi.get(enrollmentId),
-    enabled: !!enrollmentId,
+    queryKey: ['enrollment', resolvedEnrollmentId],
+    queryFn: () => enrollmentsApi.get(resolvedEnrollmentId),
+    enabled: !!resolvedEnrollmentId,
   });
 
   const bodyPartsQuery = useQuery({
@@ -107,6 +122,47 @@ export function SessionCreatePage() {
     bodyFatPercent: '',
   });
   const [entries, setEntries] = useState<EntryInput[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // edit 모드: 로드된 세션으로 폼 상태 한 번 채움
+  useEffect(() => {
+    if (!isEdit) return;
+    if (hydrated) return;
+    const s = sessionQuery.data;
+    if (!s) return;
+    setDate(dayjs(s.date).toDate());
+    setNote(s.note ?? '');
+    setPerformance(s.performance ?? '');
+    setCheck({
+      sleep: s.dailyCheck.sleep,
+      diet: s.dailyCheck.diet,
+      alcoholFree: s.dailyCheck.alcoholFree,
+      defecation: s.dailyCheck.defecation,
+      hydration: s.dailyCheck.hydration,
+    });
+    setCondition(s.dailyCheck.condition ?? '');
+    setCardioMinutes(s.dailyCheck.cardioMinutes);
+    setSteps(s.dailyCheck.steps);
+    setMetric({
+      weightKg: s.bodyMetric.weightKg,
+      skeletalMuscleKg: s.bodyMetric.skeletalMuscleKg,
+      bodyFatKg: s.bodyMetric.bodyFatKg,
+      bodyFatPercent: s.bodyMetric.bodyFatPercent,
+    });
+    setEntries(
+      s.exerciseEntries.map((e) => ({
+        tempId: crypto.randomUUID(),
+        exerciseId: e.exercise.id,
+        bodyPartId: e.bodyPart?.id ?? '',
+        sets: e.sets.map((set) => ({
+          tempId: crypto.randomUUID(),
+          weightKg: set.weightKg,
+          reps: String(set.reps),
+        })),
+      })),
+    );
+    setHydrated(true);
+  }, [isEdit, hydrated, sessionQuery.data]);
 
   const bodyPartOptions = useMemo(
     () =>
@@ -186,27 +242,43 @@ export function SessionCreatePage() {
     );
   };
 
+  const onSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+    queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    if (isEdit && sessionId) {
+      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
+    }
+    notifications.show({
+      message: isEdit ? '세션이 수정되었습니다.' : '세션이 저장되었습니다.',
+      color: 'teal',
+    });
+    if (isEdit && sessionId) {
+      navigate(`/sessions/${sessionId}`);
+    } else if (enrollmentQuery.data?.member) {
+      navigate(`/members/${enrollmentQuery.data.member.id}`);
+    } else {
+      navigate('/members');
+    }
+  };
+
+  const onError = (err: unknown) => {
+    notifications.show({
+      message: err instanceof Error ? err.message : '저장 실패',
+      color: 'red',
+    });
+  };
+
   const createMutation = useMutation({
     mutationFn: (dto: CreateSessionDto) => sessionsApi.create(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      notifications.show({
-        message: '세션이 저장되었습니다.',
-        color: 'teal',
-      });
-      if (enrollmentQuery.data?.member) {
-        navigate(`/members/${enrollmentQuery.data.member.id}`);
-      } else {
-        navigate('/members');
-      }
-    },
-    onError: (err) => {
-      notifications.show({
-        message: err instanceof Error ? err.message : '저장 실패',
-        color: 'red',
-      });
-    },
+    onSuccess,
+    onError,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (dto: UpdateSessionDto) =>
+      sessionsApi.update(sessionId as string, dto),
+    onSuccess,
+    onError,
   });
 
   const onSubmit = () => {
@@ -230,8 +302,7 @@ export function SessionCreatePage() {
       }))
       .filter((e) => e.sets.length > 0);
 
-    const dto: CreateSessionDto = {
-      enrollmentId,
+    const commonPayload = {
       date: dayjs(date).format('YYYY-MM-DD'),
       note: note.trim() || undefined,
       performance: performance || undefined,
@@ -249,16 +320,31 @@ export function SessionCreatePage() {
       },
       exerciseEntries: validEntries,
     };
-    createMutation.mutate(dto);
+
+    if (isEdit) {
+      updateMutation.mutate(commonPayload);
+    } else {
+      createMutation.mutate({
+        ...commonPayload,
+        enrollmentId: resolvedEnrollmentId,
+      });
+    }
   };
 
-  if (enrollmentQuery.isLoading) return <Loader />;
+  if (enrollmentQuery.isLoading || (isEdit && sessionQuery.isLoading))
+    return <Loader />;
   if (!enrollmentQuery.data)
     return <Text>등록권을 찾을 수 없습니다.</Text>;
+  if (isEdit && !sessionQuery.data)
+    return <Text>세션을 찾을 수 없습니다.</Text>;
 
   const enrollment = enrollmentQuery.data;
   const member = enrollment.member;
-  const nextDayNumber = (enrollment.usedSessions ?? 0) + 1;
+  const currentDayNumber = isEdit
+    ? sessionQuery.data?.dayNumber ?? 0
+    : (enrollment.usedSessions ?? 0) + 1;
+  const isSubmitting =
+    createMutation.isPending || updateMutation.isPending;
 
   return (
     <Stack>
@@ -274,16 +360,18 @@ export function SessionCreatePage() {
 
       <Group justify="space-between" align="flex-end">
         <Stack gap={4}>
-          <Title order={2}>세션 기록</Title>
+          <Title order={2}>
+            {isEdit ? '세션 수정' : '세션 기록'}
+          </Title>
           <Text c="dimmed" size="sm">
-            {member?.name ?? '회원'} · Day {nextDayNumber} /{' '}
+            {member?.name ?? '회원'} · Day {currentDayNumber} /{' '}
             {enrollment.totalSessions}
           </Text>
         </Stack>
         <Button
           leftSection={<IconDeviceFloppy size={16} />}
           onClick={onSubmit}
-          loading={createMutation.isPending}
+          loading={isSubmitting}
         >
           저장
         </Button>
@@ -640,7 +728,7 @@ export function SessionCreatePage() {
           size="md"
           leftSection={<IconDeviceFloppy size={16} />}
           onClick={onSubmit}
-          loading={createMutation.isPending}
+          loading={isSubmitting}
         >
           저장
         </Button>

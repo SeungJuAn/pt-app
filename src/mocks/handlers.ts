@@ -415,6 +415,106 @@ export const handlers = [
     return HttpResponse.json(response, { status: 201 });
   }),
 
+  http.patch(`${API}/sessions/:id`, async ({ params, request }) => {
+    const list = db.sessions as SessionWithMeta[];
+    const i = list.findIndex((s) => s.id === params.id);
+    if (i < 0) {
+      return HttpResponse.json(
+        { message: '세션을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+    const dto = (await request.json()) as {
+      date?: string;
+      dayNumber?: number;
+      note?: string | null;
+      performance?: 'GOOD' | 'NORMAL' | 'BAD' | null;
+      dailyCheck?: Partial<import('../types').DailyCheck>;
+      bodyMetric?: Partial<import('../types').BodyMetric>;
+      exerciseEntries?: Array<{
+        exerciseId: string;
+        bodyPartId?: string;
+        order: number;
+        sets: Array<{
+          setNumber: number;
+          weightKg?: string;
+          reps: number;
+        }>;
+      }>;
+    };
+    const prev = list[i];
+    const updated: SessionWithMeta = {
+      ...prev,
+      date: dto.date ?? prev.date,
+      dayNumber: dto.dayNumber ?? prev.dayNumber,
+      note: dto.note !== undefined ? dto.note ?? null : prev.note,
+      performance:
+        dto.performance !== undefined ? dto.performance ?? null : prev.performance,
+      dailyCheck: dto.dailyCheck
+        ? {
+            sleep: dto.dailyCheck.sleep ?? prev.dailyCheck.sleep,
+            diet: dto.dailyCheck.diet ?? prev.dailyCheck.diet,
+            alcoholFree:
+              dto.dailyCheck.alcoholFree ?? prev.dailyCheck.alcoholFree,
+            defecation:
+              dto.dailyCheck.defecation ?? prev.dailyCheck.defecation,
+            hydration: dto.dailyCheck.hydration ?? prev.dailyCheck.hydration,
+            condition:
+              dto.dailyCheck.condition !== undefined
+                ? dto.dailyCheck.condition ?? null
+                : prev.dailyCheck.condition,
+            cardioMinutes:
+              dto.dailyCheck.cardioMinutes ?? prev.dailyCheck.cardioMinutes,
+            steps: dto.dailyCheck.steps ?? prev.dailyCheck.steps,
+          }
+        : prev.dailyCheck,
+      bodyMetric: dto.bodyMetric
+        ? {
+            weightKg: dto.bodyMetric.weightKg ?? prev.bodyMetric.weightKg,
+            skeletalMuscleKg:
+              dto.bodyMetric.skeletalMuscleKg ??
+              prev.bodyMetric.skeletalMuscleKg,
+            bodyFatKg:
+              dto.bodyMetric.bodyFatKg ?? prev.bodyMetric.bodyFatKg,
+            bodyFatPercent:
+              dto.bodyMetric.bodyFatPercent ?? prev.bodyMetric.bodyFatPercent,
+          }
+        : prev.bodyMetric,
+      exerciseEntries: dto.exerciseEntries
+        ? dto.exerciseEntries.map((e) => {
+            const exercise =
+              db.exercises.find((x) => x.id === e.exerciseId) ?? {
+                id: e.exerciseId,
+                name: '알 수 없는 운동',
+                cautionTemplate: null,
+                defaultBodyPart: null,
+                createdAt: new Date().toISOString(),
+              };
+            const bodyPart = e.bodyPartId
+              ? db.bodyParts.find((b) => b.id === e.bodyPartId) ?? null
+              : exercise.defaultBodyPart;
+            return {
+              id: uuid(),
+              order: e.order,
+              exercise,
+              bodyPart,
+              sets: e.sets.map((s) => ({
+                id: uuid(),
+                setNumber: s.setNumber,
+                weightKg: s.weightKg ?? '0',
+                reps: s.reps,
+              })),
+            };
+          })
+        : prev.exerciseEntries,
+    };
+    list[i] = updated;
+    const { memberId: _m, enrollmentId: _e, ...rest } = updated;
+    void _m;
+    void _e;
+    return HttpResponse.json(rest);
+  }),
+
   http.delete(`${API}/sessions/:id`, ({ params }) => {
     const list = db.sessions as SessionWithMeta[];
     const i = list.findIndex((s) => s.id === params.id);

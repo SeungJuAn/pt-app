@@ -1,6 +1,7 @@
 import {
   Anchor,
   Badge,
+  Button,
   Card,
   Divider,
   Grid,
@@ -12,10 +13,19 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import {
+  IconArrowLeft,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { sessionsApi } from '../api/sessions';
 import { estimateOneRM, totalVolume } from '../lib/oneRm';
 import type { SessionPerformance } from '../types';
@@ -39,10 +49,30 @@ const CHECK_LABEL: Record<string, string> = {
 
 export function SessionDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const sessionQuery = useQuery({
     queryKey: ['session', id],
     queryFn: () => sessionsApi.get(id),
     enabled: !!id,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => sessionsApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      notifications.show({ message: '삭제되었습니다.', color: 'teal' });
+      const memberId = sessionQuery.data?.enrollment?.member?.id;
+      navigate(memberId ? `/members/${memberId}` : '/members');
+    },
+    onError: (err) => {
+      notifications.show({
+        message: err instanceof Error ? err.message : '삭제 실패',
+        color: 'red',
+      });
+    },
   });
 
   if (sessionQuery.isLoading) return <Loader />;
@@ -93,6 +123,28 @@ export function SessionDetailPage() {
               {dayjs(s.date).format('YYYY년 M월 D일 (ddd)')}
             </Text>
           </Stack>
+          <Group gap="xs">
+            <Button
+              variant="light"
+              leftSection={<IconPencil size={14} />}
+              onClick={() => navigate(`/sessions/${s.id}/edit`)}
+            >
+              수정
+            </Button>
+            <Button
+              variant="subtle"
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              loading={deleteMutation.isPending}
+              onClick={() => {
+                if (confirm('이 세션 기록을 삭제할까요?')) {
+                  deleteMutation.mutate();
+                }
+              }}
+            >
+              삭제
+            </Button>
+          </Group>
         </Group>
       </Paper>
 
@@ -227,16 +279,20 @@ export function SessionDetailPage() {
         </Grid.Col>
       </Grid>
 
-      {s.note && (
-        <Card withBorder padding="md">
-          <Title order={5} mb="xs">
-            📝 한줄평
-          </Title>
+      <Card withBorder padding="md">
+        <Title order={5} mb="xs">
+          📝 한줄평
+        </Title>
+        {s.note ? (
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {s.note}
           </Text>
-        </Card>
-      )}
+        ) : (
+          <Text size="sm" c="dimmed">
+            기록된 한줄평이 없습니다. 우측 상단 "수정"에서 추가할 수 있어요.
+          </Text>
+        )}
+      </Card>
     </Stack>
   );
 }

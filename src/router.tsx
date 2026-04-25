@@ -23,6 +23,7 @@ export const router = createBrowserRouter(
           path: 'enrollments/:enrollmentId/sessions/new',
           Component: SessionCreatePage,
         },
+        { path: 'sessions/:sessionId/edit', Component: SessionCreatePage },
         { path: 'sessions/:id', Component: SessionDetailPage },
         { path: 'exercises', Component: ExercisesPlaceholder },
       ],

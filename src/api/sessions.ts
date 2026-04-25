@@ -1,6 +1,8 @@
 import { api } from '../lib/api';
 import type { CreateSessionDto, Session } from '../types';
 
+export type UpdateSessionDto = Partial<Omit<CreateSessionDto, 'enrollmentId'>>;
+
 export const sessionsApi = {
   listByEnrollment: (enrollmentId: string) =>
     api<Session[]>(
@@ -12,6 +14,11 @@ export const sessionsApi = {
   create: (dto: CreateSessionDto) =>
     api<Session>('/sessions', {
       method: 'POST',
+      body: JSON.stringify(dto),
+    }),
+  update: (id: string, dto: UpdateSessionDto) =>
+    api<Session>(`/sessions/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(dto),
     }),
   remove: (id: string) =>
