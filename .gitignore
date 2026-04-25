@@ -30,3 +30,6 @@ dist-ssr
 
 # Claude Code local config
 .claude/
+
+# Local design notes (not for repo)
+DESIGN.md
