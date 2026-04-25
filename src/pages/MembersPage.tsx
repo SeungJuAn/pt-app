@@ -10,8 +10,6 @@ import {
   Center,
   Group,
   Loader,
-  Modal,
-  NumberInput,
   Pagination,
   Paper,
   SegmentedControl,
@@ -20,13 +18,11 @@ import {
   Table,
   Text,
   TextInput,
-  Textarea,
   Title,
   Tooltip,
 } from '@mantine/core';
 import { Link } from 'react-router';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
@@ -38,7 +34,7 @@ import {
 } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { membersApi } from '../api/members';
-import { formatPhone } from '../lib/phone';
+import { MemberFormModal } from '../components/MemberFormModal';
 import type {
   CreateMemberDto,
   Member,
@@ -68,16 +64,6 @@ const LEVEL_META: Record<
 };
 
 type LevelFilter = 'ALL' | MemberLevel;
-
-interface MemberFormValues {
-  name: string;
-  gender: MemberGender | '';
-  age: number | '';
-  occupation: string;
-  ptExperience: string;
-  phone: string;
-  memo: string;
-}
 
 const GENDER_LABEL: Record<MemberGender, string> = {
   MALE: '남',
@@ -159,7 +145,6 @@ export function MembersPage() {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       notifications.show({ message: '회원이 추가되었습니다.', color: 'teal' });
       close();
-      form.reset();
     },
     onError: (err) => {
       notifications.show({
@@ -176,47 +161,6 @@ export function MembersPage() {
       notifications.show({ message: '삭제되었습니다.', color: 'teal' });
     },
   });
-
-  const PHONE_REGEX = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-
-  const form = useForm<MemberFormValues>({
-    initialValues: {
-      name: '',
-      gender: '',
-      age: '',
-      occupation: '',
-      ptExperience: '',
-      phone: '',
-      memo: '',
-    },
-    validate: {
-      name: (v) => (v.trim().length ? null : '이름을 입력하세요'),
-      age: (v) => {
-        if (v === '' || v === null) return null;
-        return v >= 1 && v <= 120 ? null : '1~120 사이의 값을 입력하세요';
-      },
-      phone: (v) => {
-        const s = (v ?? '').trim();
-        if (!s) return null;
-        return PHONE_REGEX.test(s)
-          ? null
-          : '올바른 휴대폰 번호가 아닙니다 (예: 010-1234-5678)';
-      },
-    },
-  });
-
-  const handleSubmit = (values: MemberFormValues) => {
-    const dto: CreateMemberDto = {
-      name: values.name.trim(),
-      gender: values.gender || undefined,
-      age: values.age === '' ? undefined : values.age,
-      occupation: values.occupation.trim() || undefined,
-      ptExperience: values.ptExperience.trim() || undefined,
-      phone: values.phone.trim() || undefined,
-      memo: values.memo.trim() || undefined,
-    };
-    createMutation.mutate(dto);
-  };
 
   const showEmpty = !isLoading && members.length === 0;
 
@@ -350,9 +294,8 @@ export function MembersPage() {
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={open}
-            color="white"
             variant="white"
-            c="teal.7"
+            color="teal.7"
           >
             회원 추가
           </Button>
@@ -464,75 +407,13 @@ export function MembersPage() {
         )}
       </Paper>
 
-      <Modal opened={opened} onClose={close} title="회원 추가" centered size="md">
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
-            <TextInput
-              label="이름"
-              required
-              {...form.getInputProps('name')}
-            />
-            <Group grow>
-              <Select
-                label="성별"
-                placeholder="선택"
-                clearable
-                data={[
-                  { value: 'MALE', label: '남' },
-                  { value: 'FEMALE', label: '여' },
-                ]}
-                {...form.getInputProps('gender')}
-              />
-              <NumberInput
-                label="나이"
-                min={1}
-                max={120}
-                {...form.getInputProps('age')}
-              />
-            </Group>
-            <TextInput
-              label="직장"
-              placeholder="예: 회사원, 학생, 자영업"
-              {...form.getInputProps('occupation')}
-            />
-            <Textarea
-              label="운동(PT) 경험"
-              placeholder="예: PT 경험 없음 / 헬스 6개월 / 요가 1년"
-              autosize
-              minRows={2}
-              {...form.getInputProps('ptExperience')}
-            />
-            <TextInput
-              label="연락처"
-              placeholder="010-0000-0000"
-              inputMode="numeric"
-              maxLength={13}
-              {...form.getInputProps('phone')}
-              onChange={(e) =>
-                form.setFieldValue(
-                  'phone',
-                  formatPhone(e.currentTarget.value),
-                )
-              }
-            />
-            <Textarea
-              label="기타 사항"
-              placeholder="목표, 부상 이력, 식단 제한 등"
-              autosize
-              minRows={2}
-              {...form.getInputProps('memo')}
-            />
-            <Group justify="flex-end">
-              <Button variant="subtle" onClick={close}>
-                취소
-              </Button>
-              <Button type="submit" loading={createMutation.isPending}>
-                저장
-              </Button>
-            </Group>
-          </Stack>
-        </form>
-      </Modal>
+      <MemberFormModal
+        opened={opened}
+        onClose={close}
+        mode="create"
+        onSubmit={(dto) => createMutation.mutate(dto)}
+        isSubmitting={createMutation.isPending}
+      />
     </Stack>
   );
 }

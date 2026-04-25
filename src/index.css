@@ -38,10 +38,14 @@ body {
   color: white;
   border: none;
 }
-.app-hero-card * {
+.app-hero-card h1,
+.app-hero-card h2,
+.app-hero-card h3,
+.app-hero-card h4 {
   color: white;
 }
-.app-hero-card .app-hero-sub {
+.app-hero-card .app-hero-sub,
+.app-hero-card .app-hero-sub * {
   color: rgba(255, 255, 255, 0.85);
 }
 

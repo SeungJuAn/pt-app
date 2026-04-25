@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -17,11 +17,11 @@ import {
   Text,
   Textarea,
   Title,
-} from '@mantine/core';
-import { Calendar, DatePickerInput, TimePicker } from '@mantine/dates';
-import { useForm } from '@mantine/form';
-import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
+} from "@mantine/core";
+import { Calendar, DatePickerInput, TimePicker } from "@mantine/dates";
+import { useForm } from "@mantine/form";
+import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
   IconCalendarEvent,
   IconChartBar,
@@ -29,45 +29,43 @@ import {
   IconPlus,
   IconTrash,
   IconUser,
-} from '@tabler/icons-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
-import { appointmentsApi } from '../api/appointments';
-import { membersApi } from '../api/members';
-import { MemberHistoryModal } from '../components/MemberHistoryModal';
+} from "@tabler/icons-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import { appointmentsApi } from "../api/appointments";
+import { membersApi } from "../api/members";
+import { MemberHistoryModal } from "../components/MemberHistoryModal";
 import type {
   Appointment,
   AppointmentKind,
   AppointmentStatus,
   CreateAppointmentDto,
-} from '../types';
+} from "../types";
 
 const KIND_LABEL: Record<AppointmentKind, string> = {
-  CONSULTATION: '상담',
-  SESSION: 'PT 세션',
+  CONSULTATION: "상담",
+  SESSION: "PT 세션",
 };
 
-const STATUS_META: Record<
-  AppointmentStatus,
-  { label: string; color: string }
-> = {
-  SCHEDULED: { label: '예정', color: 'teal' },
-  COMPLETED: { label: '완료', color: 'gray' },
-  CANCELED: { label: '취소', color: 'red' },
-  NO_SHOW: { label: '불참', color: 'orange' },
-};
+const STATUS_META: Record<AppointmentStatus, { label: string; color: string }> =
+  {
+    SCHEDULED: { label: "예정", color: "teal" },
+    COMPLETED: { label: "완료", color: "gray" },
+    CANCELED: { label: "취소", color: "red" },
+    NO_SHOW: { label: "불참", color: "orange" },
+  };
 
 interface FormValues {
   memberId: string | null;
   date: Date | null;
   time: string;
   kind: AppointmentKind;
-  durationMin: number | '';
+  durationMin: number | "";
   note: string;
 }
 
 function toDateKey(d: Date | string): string {
-  return dayjs(d).format('YYYY-MM-DD');
+  return dayjs(d).format("YYYY-MM-DD");
 }
 
 export function HomePage() {
@@ -75,38 +73,33 @@ export function HomePage() {
   const today = useMemo(() => toDateKey(new Date()), []);
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [viewMonth, setViewMonth] = useState<string>(
-    dayjs().startOf('month').format('YYYY-MM-DD'),
+    dayjs().startOf("month").format("YYYY-MM-DD"),
   );
   const [opened, { open, close }] = useDisclosure(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [historyMemberId, setHistoryMemberId] = useState<string | null>(null);
-  const [
-    historyOpened,
-    { open: openHistory, close: closeHistory },
-  ] = useDisclosure(false);
+  const [historyOpened, { open: openHistory, close: closeHistory }] =
+    useDisclosure(false);
 
   const showHistory = (id: string) => {
     setHistoryMemberId(id);
     openHistory();
   };
 
-  const monthKey = dayjs(viewMonth).format('YYYY-MM');
+  const monthKey = dayjs(viewMonth).format("YYYY-MM");
   const rangeFrom = dayjs(viewMonth)
-    .startOf('month')
-    .subtract(7, 'day')
+    .startOf("month")
+    .subtract(7, "day")
     .toISOString();
-  const rangeTo = dayjs(viewMonth)
-    .endOf('month')
-    .add(7, 'day')
-    .toISOString();
+  const rangeTo = dayjs(viewMonth).endOf("month").add(7, "day").toISOString();
 
   const appointmentsQuery = useQuery({
-    queryKey: ['appointments', monthKey],
+    queryKey: ["appointments", monthKey],
     queryFn: () => appointmentsApi.listRange(rangeFrom, rangeTo),
   });
 
   const membersQuery = useQuery({
-    queryKey: ['members', 'all'],
+    queryKey: ["members", "all"],
     queryFn: membersApi.listAll,
   });
 
@@ -129,19 +122,19 @@ export function HomePage() {
     initialValues: {
       memberId: null,
       date: new Date(),
-      time: '10:00',
-      kind: 'SESSION',
+      time: "10:00",
+      kind: "SESSION",
       durationMin: 60,
-      note: '',
+      note: "",
     },
     validate: {
-      date: (v) => (v ? null : '날짜를 선택하세요'),
+      date: (v) => (v ? null : "날짜를 선택하세요"),
       time: (v) =>
-        /^\d{2}:\d{2}(?::\d{2})?$/.test(v) ? null : '시간을 입력하세요',
+        /^\d{2}:\d{2}(?::\d{2})?$/.test(v) ? null : "시간을 입력하세요",
       durationMin: (v) =>
-        typeof v === 'number' && v >= 10 && v <= 600
+        typeof v === "number" && v >= 10 && v <= 600
           ? null
-          : '10~600분 사이로 입력하세요',
+          : "10~600분 사이로 입력하세요",
     },
   });
 
@@ -150,10 +143,10 @@ export function HomePage() {
     form.setValues({
       memberId: null,
       date: date ? dayjs(date).toDate() : new Date(),
-      time: '10:00',
-      kind: 'SESSION',
+      time: "10:00",
+      kind: "SESSION",
       durationMin: 60,
-      note: '',
+      note: "",
     });
     open();
   };
@@ -163,10 +156,10 @@ export function HomePage() {
     form.setValues({
       memberId: a.member?.id ?? null,
       date: dayjs(a.startAt).toDate(),
-      time: dayjs(a.startAt).format('HH:mm'),
+      time: dayjs(a.startAt).format("HH:mm"),
       kind: a.kind,
       durationMin: a.durationMin,
-      note: a.note ?? '',
+      note: a.note ?? "",
     });
     open();
   };
@@ -174,29 +167,34 @@ export function HomePage() {
   const createMutation = useMutation({
     mutationFn: (dto: CreateAppointmentDto) => appointmentsApi.create(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      notifications.show({ message: '일정이 추가되었습니다.', color: 'teal' });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      notifications.show({ message: "일정이 추가되었습니다.", color: "teal" });
       close();
     },
     onError: (err) => {
       notifications.show({
-        message: err instanceof Error ? err.message : '추가 실패',
-        color: 'red',
+        message: err instanceof Error ? err.message : "추가 실패",
+        color: "red",
       });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: Parameters<typeof appointmentsApi.update>[1] }) =>
-      appointmentsApi.update(id, dto),
+    mutationFn: ({
+      id,
+      dto,
+    }: {
+      id: string;
+      dto: Parameters<typeof appointmentsApi.update>[1];
+    }) => appointmentsApi.update(id, dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
       close();
     },
     onError: (err) => {
       notifications.show({
-        message: err instanceof Error ? err.message : '수정 실패',
-        color: 'red',
+        message: err instanceof Error ? err.message : "수정 실패",
+        color: "red",
       });
     },
   });
@@ -204,14 +202,14 @@ export function HomePage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => appointmentsApi.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      notifications.show({ message: '삭제되었습니다.', color: 'teal' });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      notifications.show({ message: "삭제되었습니다.", color: "teal" });
     },
   });
 
   const handleSubmit = (values: FormValues) => {
     if (!values.date) return;
-    const parts = values.time.split(':').map(Number);
+    const parts = values.time.split(":").map(Number);
     const hh = parts[0] ?? 0;
     const mm = parts[1] ?? 0;
     const startAt = dayjs(values.date)
@@ -224,7 +222,7 @@ export function HomePage() {
       memberId: values.memberId || undefined,
       startAt,
       durationMin:
-        typeof values.durationMin === 'number' ? values.durationMin : 60,
+        typeof values.durationMin === "number" ? values.durationMin : 60,
       kind: values.kind,
       note: values.note.trim() || undefined,
     };
@@ -242,7 +240,7 @@ export function HomePage() {
   const todayCount = byDate.get(today)?.length ?? 0;
   const monthCount = appointmentsQuery.data?.length ?? 0;
   const scheduledInMonth =
-    appointmentsQuery.data?.filter((a) => a.status === 'SCHEDULED').length ?? 0;
+    appointmentsQuery.data?.filter((a) => a.status === "SCHEDULED").length ?? 0;
 
   return (
     <Stack>
@@ -254,10 +252,10 @@ export function HomePage() {
                 width: 48,
                 height: 48,
                 borderRadius: 12,
-                background: 'rgba(255,255,255,0.2)',
-                display: 'grid',
-                placeItems: 'center',
-                backdropFilter: 'blur(8px)',
+                background: "rgba(255,255,255,0.2)",
+                display: "grid",
+                placeItems: "center",
+                backdropFilter: "blur(8px)",
               }}
             >
               <IconCalendarEvent size={26} />
@@ -269,7 +267,8 @@ export function HomePage() {
                   오늘 일정 <b>{todayCount}</b>건
                 </Text>
                 <Text size="sm">
-                  이번 달 <b>{monthCount}</b>건 · 예정 <b>{scheduledInMonth}</b>건
+                  이번 달 <b>{monthCount}</b>건 · 예정 <b>{scheduledInMonth}</b>
+                  건
                 </Text>
               </Group>
             </Stack>
@@ -277,9 +276,8 @@ export function HomePage() {
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => openCreate(selectedDate)}
-            color="white"
             variant="white"
-            c="teal.7"
+            color="teal.7"
           >
             일정 추가
           </Button>
@@ -323,12 +321,12 @@ export function HomePage() {
               <Group justify="space-between" align="center">
                 <Stack gap={0}>
                   <Text fw={600} size="lg">
-                    {dayjs(selectedDate).format('YYYY년 M월 D일 (ddd)')}
+                    {dayjs(selectedDate).format("YYYY년 M월 D일 (ddd)")}
                   </Text>
                   <Text size="sm" c="dimmed">
                     {selectedAppointments.length > 0
                       ? `일정 ${selectedAppointments.length}건`
-                      : '일정 없음'}
+                      : "일정 없음"}
                   </Text>
                 </Stack>
                 <Button
@@ -351,16 +349,13 @@ export function HomePage() {
                 <Stack gap="xs">
                   {selectedAppointments.map((a) => {
                     const meta = STATUS_META[a.status];
-                    const endAt = dayjs(a.startAt).add(
-                      a.durationMin,
-                      'minute',
-                    );
+                    const endAt = dayjs(a.startAt).add(a.durationMin, "minute");
                     return (
                       <Card
                         key={a.id}
                         withBorder
                         padding="sm"
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: "pointer" }}
                         onClick={() => openEdit(a)}
                       >
                         <Group justify="space-between" wrap="nowrap">
@@ -368,13 +363,13 @@ export function HomePage() {
                             <Group gap="xs" wrap="nowrap">
                               <IconClock size={14} />
                               <Text size="sm" fw={500}>
-                                {dayjs(a.startAt).format('HH:mm')} –{' '}
-                                {endAt.format('HH:mm')}
+                                {dayjs(a.startAt).format("HH:mm")} –{" "}
+                                {endAt.format("HH:mm")}
                               </Text>
                               <Badge
                                 size="xs"
                                 variant="light"
-                                color={a.kind === 'SESSION' ? 'blue' : 'grape'}
+                                color={a.kind === "SESSION" ? "blue" : "grape"}
                               >
                                 {KIND_LABEL[a.kind]}
                               </Badge>
@@ -389,7 +384,7 @@ export function HomePage() {
                             <Group gap={6} wrap="nowrap">
                               <IconUser size={14} />
                               <Text size="sm" truncate>
-                                {a.member?.name ?? '-'}
+                                {a.member?.name ?? "-"}
                               </Text>
                             </Group>
                             {a.note && (
@@ -413,7 +408,7 @@ export function HomePage() {
                                 <IconChartBar size={14} />
                               </ActionIcon>
                             )}
-                            {a.status === 'SCHEDULED' && (
+                            {a.status === "SCHEDULED" && (
                               <>
                                 <Button
                                   size="compact-xs"
@@ -422,7 +417,7 @@ export function HomePage() {
                                     e.stopPropagation();
                                     updateMutation.mutate({
                                       id: a.id,
-                                      dto: { status: 'COMPLETED' },
+                                      dto: { status: "COMPLETED" },
                                     });
                                   }}
                                 >
@@ -436,7 +431,7 @@ export function HomePage() {
                                     e.stopPropagation();
                                     updateMutation.mutate({
                                       id: a.id,
-                                      dto: { status: 'CANCELED' },
+                                      dto: { status: "CANCELED" },
                                     });
                                   }}
                                 >
@@ -450,7 +445,7 @@ export function HomePage() {
                               color="red"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm('이 일정을 삭제할까요?')) {
+                                if (confirm("이 일정을 삭제할까요?")) {
                                   deleteMutation.mutate(a.id);
                                 }
                               }}
@@ -478,7 +473,7 @@ export function HomePage() {
       <Modal
         opened={opened}
         onClose={close}
-        title={editing ? '일정 수정' : '일정 추가'}
+        title={editing ? "일정 수정" : "일정 추가"}
         centered
         size="md"
       >
@@ -487,10 +482,10 @@ export function HomePage() {
             <SegmentedControl
               fullWidth
               data={[
-                { value: 'SESSION', label: 'PT 세션' },
-                { value: 'CONSULTATION', label: '상담' },
+                { value: "SESSION", label: "PT 세션" },
+                { value: "CONSULTATION", label: "상담" },
               ]}
-              {...form.getInputProps('kind')}
+              {...form.getInputProps("kind")}
             />
             <Select
               label="회원"
@@ -498,14 +493,14 @@ export function HomePage() {
               searchable
               clearable
               data={memberOptions}
-              {...form.getInputProps('memberId')}
+              {...form.getInputProps("memberId")}
             />
             <Group grow>
               <DatePickerInput
                 label="날짜"
                 valueFormat="YYYY-MM-DD"
                 required
-                {...form.getInputProps('date')}
+                {...form.getInputProps("date")}
               />
               <TimePicker
                 label="시작 시간"
@@ -515,19 +510,19 @@ export function HomePage() {
                 minutesStep={5}
                 hoursStep={1}
                 presets={[
-                  '06:00',
-                  '07:00',
-                  '09:00',
-                  '10:00',
-                  '12:00',
-                  '14:00',
-                  '15:00',
-                  '18:00',
-                  '19:00',
-                  '20:00',
-                  '21:00',
+                  "06:00",
+                  "07:00",
+                  "09:00",
+                  "10:00",
+                  "12:00",
+                  "14:00",
+                  "15:00",
+                  "18:00",
+                  "19:00",
+                  "20:00",
+                  "21:00",
                 ]}
-                {...form.getInputProps('time')}
+                {...form.getInputProps("time")}
               />
             </Group>
             <NumberInput
@@ -535,14 +530,14 @@ export function HomePage() {
               min={10}
               max={600}
               step={15}
-              {...form.getInputProps('durationMin')}
+              {...form.getInputProps("durationMin")}
             />
             <Textarea
               label="메모"
               placeholder="특이사항, 준비물, 목표 등"
               autosize
               minRows={2}
-              {...form.getInputProps('note')}
+              {...form.getInputProps("note")}
             />
             <Group justify="space-between">
               {editing ? (
@@ -551,7 +546,7 @@ export function HomePage() {
                   color="red"
                   leftSection={<IconTrash size={14} />}
                   onClick={() => {
-                    if (confirm('이 일정을 삭제할까요?')) {
+                    if (confirm("이 일정을 삭제할까요?")) {
                       deleteMutation.mutate(editing.id);
                       close();
                     }
@@ -568,9 +563,7 @@ export function HomePage() {
                 </Button>
                 <Button
                   type="submit"
-                  loading={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  loading={createMutation.isPending || updateMutation.isPending}
                 >
                   저장
                 </Button>

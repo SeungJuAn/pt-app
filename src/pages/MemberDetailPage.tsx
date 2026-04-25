@@ -21,6 +21,7 @@ import { notifications } from '@mantine/notifications';
 import {
   IconArrowLeft,
   IconNotebook,
+  IconPencil,
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
@@ -34,7 +35,12 @@ import { Link, useParams } from 'react-router';
 import { enrollmentsApi } from '../api/enrollments';
 import { membersApi } from '../api/members';
 import { sessionsApi } from '../api/sessions';
-import type { Enrollment, EnrollmentStatus } from '../types';
+import { MemberFormModal } from '../components/MemberFormModal';
+import type {
+  Enrollment,
+  EnrollmentStatus,
+  UpdateMemberDto,
+} from '../types';
 
 const STATUS_META: Record<
   EnrollmentStatus,
@@ -54,6 +60,10 @@ export function MemberDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [opened, { open, close }] = useDisclosure(false);
+  const [
+    editOpened,
+    { open: openEdit, close: closeEdit },
+  ] = useDisclosure(false);
 
   const memberQuery = useQuery({
     queryKey: ['members', id],
@@ -133,6 +143,25 @@ export function MemberDetailPage() {
     },
   });
 
+  const updateMemberMutation = useMutation({
+    mutationFn: (dto: UpdateMemberDto) => membersApi.update(id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['members', id] });
+      notifications.show({
+        message: '회원 정보가 수정되었습니다.',
+        color: 'teal',
+      });
+      closeEdit();
+    },
+    onError: (err) => {
+      notifications.show({
+        message: err instanceof Error ? err.message : '수정 실패',
+        color: 'red',
+      });
+    },
+  });
+
   if (memberQuery.isLoading) return <Loader />;
   if (!memberQuery.data) return <Text>회원을 찾을 수 없습니다.</Text>;
 
@@ -182,6 +211,14 @@ export function MemberDetailPage() {
                 <Text c="dimmed">{member.age}세</Text>
               )}
             </Group>
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconPencil size={14} />}
+              onClick={openEdit}
+            >
+              수정
+            </Button>
           </Group>
           <Group gap="lg" c="dimmed" style={{ fontSize: 14 }}>
             <Text size="sm">
@@ -376,6 +413,15 @@ export function MemberDetailPage() {
           </Stack>
         </form>
       </Modal>
+
+      <MemberFormModal
+        opened={editOpened}
+        onClose={closeEdit}
+        mode="edit"
+        initial={member}
+        onSubmit={(dto) => updateMemberMutation.mutate(dto)}
+        isSubmitting={updateMemberMutation.isPending}
+      />
     </Stack>
   );
 }
