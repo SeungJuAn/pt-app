@@ -1,6 +1,5 @@
 import {
   AppShell,
-  Badge,
   Box,
   Burger,
   Group,
@@ -8,19 +7,20 @@ import {
   Stack,
   Text,
   Title,
+  UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconBarbell,
   IconBolt,
-  IconDashboard,
+  IconLayoutDashboard,
   IconUsers,
 } from '@tabler/icons-react';
 import { NavLink as RouterLink, Outlet, useLocation } from 'react-router';
 
 const navItems = [
-  { to: '/', label: '대시보드', icon: IconDashboard, desc: '일정 · 오늘 할 일' },
-  { to: '/members', label: '회원', icon: IconUsers, desc: '회원 관리 · 등록권' },
+  { to: '/', label: '대시보드', icon: IconLayoutDashboard, desc: '일정 · 오늘 할 일' },
+  { to: '/members', label: '회원 관리', icon: IconUsers, desc: '회원 · 등록권 · 세션' },
   { to: '/exercises', label: '운동 관리', icon: IconBarbell, desc: '운동 라이브러리' },
 ];
 
@@ -30,20 +30,21 @@ export function AppShellLayout() {
 
   return (
     <AppShell
-      header={{ height: 64 }}
-      navbar={{
-        width: 260,
-        breakpoint: 'sm',
-        collapsed: { mobile: !opened },
-      }}
+      header={{ height: 60 }}
+      navbar={{ width: 240, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
+      styles={{
+        main: {
+          background: 'linear-gradient(160deg,rgba(240,253,250,0.6) 0%,rgba(240,249,255,0.4) 100%)',
+          minHeight: '100vh',
+        },
+      }}
     >
       <AppShell.Header
         style={{
-          background:
-            'linear-gradient(135deg, rgba(13,148,136,0.97) 0%, rgba(8,145,178,0.97) 100%)',
-          borderBottom: 'none',
-          backdropFilter: 'saturate(140%)',
+          background: 'linear-gradient(135deg,#0d9488 0%,#0891b2 100%)',
+          border: 'none',
+          boxShadow: '0 2px 12px rgba(8,145,178,0.25)',
         }}
       >
         <Group h="100%" px="md" justify="space-between">
@@ -55,44 +56,50 @@ export function AppShellLayout() {
               size="sm"
               color="white"
             />
-            <Group gap={8}>
+            <Group gap={10}>
               <Box
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
+                  width: 34, height: 34, borderRadius: 10,
                   background: 'rgba(255,255,255,0.2)',
-                  display: 'grid',
-                  placeItems: 'center',
+                  display: 'grid', placeItems: 'center',
                   backdropFilter: 'blur(8px)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 }}
               >
-                <IconBolt size={18} color="white" />
+                <IconBolt size={18} color="white" fill="white" />
               </Box>
               <Stack gap={0}>
-                <Title order={4} c="white" style={{ letterSpacing: '-0.01em' }}>
+                <Title order={4} c="white" style={{ letterSpacing: '-0.02em', lineHeight: 1.1 }}>
                   PT App
                 </Title>
-                <Text size="xs" c="rgba(255,255,255,0.75)" mt={-4}>
-                  퍼스널 트레이너 워크스페이스
+                <Text size="xs" c="rgba(255,255,255,0.7)" style={{ lineHeight: 1 }}>
+                  트레이너 워크스페이스
                 </Text>
               </Stack>
             </Group>
           </Group>
-          <Badge
-            variant="white"
-            color="teal"
-            size="sm"
-            leftSection={<IconBolt size={10} />}
-            visibleFrom="sm"
+
+          <Box
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              borderRadius: 20,
+              padding: '3px 10px',
+              backdropFilter: 'blur(4px)',
+            }}
           >
-            Beta
-          </Badge>
+            <Text size="xs" c="white" fw={600}>Beta</Text>
+          </Box>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="sm" style={{ background: '#fafbfc' }}>
-        <Stack gap={4}>
+      <AppShell.Navbar
+        p="sm"
+        style={{
+          background: 'white',
+          borderRight: '1px solid rgba(226,232,240,0.8)',
+        }}
+      >
+        <Stack gap={3}>
           {navItems.map((item) => {
             const active =
               item.to === '/'
@@ -104,55 +111,57 @@ export function AppShellLayout() {
                 component={RouterLink}
                 to={item.to}
                 label={
-                  <Text fw={active ? 600 : 500} size="sm">
+                  <Text fw={active ? 700 : 500} size="sm" c={active ? 'teal.7' : 'dark'}>
                     {item.label}
                   </Text>
                 }
-                description={item.desc}
+                description={
+                  <Text size="xs" c="dimmed">{item.desc}</Text>
+                }
                 leftSection={
                   <Box
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      display: 'grid',
-                      placeItems: 'center',
+                      width: 34, height: 34, borderRadius: 10,
+                      display: 'grid', placeItems: 'center',
                       background: active
-                        ? 'linear-gradient(135deg, #0d9488, #0891b2)'
+                        ? 'linear-gradient(135deg,#0d9488,#0891b2)'
                         : 'rgba(15,23,42,0.04)',
-                      color: active ? 'white' : '#475569',
-                      transition: 'all 150ms ease',
+                      color: active ? 'white' : '#64748b',
+                      transition: 'all 180ms ease',
+                      boxShadow: active ? '0 2px 8px rgba(13,148,136,0.3)' : 'none',
                     }}
                   >
-                    <item.icon size={18} />
+                    <item.icon size={17} />
                   </Box>
                 }
                 active={active}
-                variant="light"
+                variant="subtle"
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 12,
+                  background: active ? 'rgba(13,148,136,0.06)' : 'transparent',
+                  border: active ? '1px solid rgba(13,148,136,0.12)' : '1px solid transparent',
+                  transition: 'all 150ms ease',
                 }}
               />
             );
           })}
         </Stack>
 
+        {/* 하단 도움말 */}
         <Box
           mt="auto"
           p="sm"
           style={{
-            borderRadius: 12,
-            background:
-              'linear-gradient(135deg, rgba(20,184,166,0.1), rgba(14,165,233,0.08))',
-            border: '1px solid rgba(20,184,166,0.15)',
+            borderRadius: 14,
+            background: 'linear-gradient(135deg,rgba(13,148,136,0.07),rgba(8,145,178,0.05))',
+            border: '1px solid rgba(13,148,136,0.12)',
           }}
         >
-          <Text size="xs" fw={600} c="teal.7">
-            💡 Tip
-          </Text>
-          <Text size="xs" c="dimmed" mt={4}>
-            일정 카드의 그래프 아이콘을 누르면 해당 회원의 진행 현황을 확인할 수
-            있어요.
+          <Group gap={6} mb={4}>
+            <Text size="xs" fw={700} c="teal.7">💡 사용 팁</Text>
+          </Group>
+          <Text size="xs" c="dimmed" lh={1.5}>
+            회원 카드의 등록권에서 세션을 기록하고, 완료된 등록권은 내역을 펼쳐 볼 수 있어요.
           </Text>
         </Box>
       </AppShell.Navbar>

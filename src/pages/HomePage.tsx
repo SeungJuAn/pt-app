@@ -244,7 +244,7 @@ export function HomePage() {
 
   return (
     <Stack>
-      <Card className="app-hero-card" padding="lg" radius="lg">
+      <Card className="app-hero-card" padding="xl" radius="xl">
         <Group justify="space-between" align="flex-end" wrap="wrap">
           <Group gap="md" align="flex-start">
             <Box
@@ -286,7 +286,7 @@ export function HomePage() {
 
       <Grid>
         <Grid.Col span={{ base: 12, md: 7 }}>
-          <Card withBorder padding="md">
+          <Card withBorder padding="lg" radius="xl">
             <Calendar
               date={viewMonth}
               onDateChange={(d) => setViewMonth(d)}
@@ -316,7 +316,7 @@ export function HomePage() {
         </Grid.Col>
 
         <Grid.Col span={{ base: 12, md: 5 }}>
-          <Card withBorder padding="md">
+          <Card withBorder padding="lg" radius="xl">
             <Stack>
               <Group justify="space-between" align="center">
                 <Stack gap={0}>
@@ -354,7 +354,8 @@ export function HomePage() {
                       <Card
                         key={a.id}
                         withBorder
-                        padding="sm"
+                        padding="md"
+                        radius="xl"
                         style={{ cursor: "pointer" }}
                         onClick={() => openEdit(a)}
                       >
@@ -473,14 +474,19 @@ export function HomePage() {
       <Modal
         opened={opened}
         onClose={close}
-        title={editing ? "일정 수정" : "일정 추가"}
+        title={
+          <Text fw={700} size="lg">{editing ? "일정 수정" : "일정 추가"}</Text>
+        }
         centered
         size="md"
+        radius="xl"
+        padding="xl"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
+          <Stack gap="md">
             <SegmentedControl
               fullWidth
+              size="sm"
               data={[
                 { value: "SESSION", label: "PT 세션" },
                 { value: "CONSULTATION", label: "상담" },
@@ -489,17 +495,21 @@ export function HomePage() {
             />
             <Select
               label="회원"
-              placeholder="선택 (상담 신규 문의 등은 비워두기 가능)"
+              placeholder="선택 (신규 상담은 비워두기 가능)"
               searchable
               clearable
               data={memberOptions}
+              radius="lg"
+              size="sm"
               {...form.getInputProps("memberId")}
             />
-            <Group grow>
+            <Group grow gap="sm">
               <DatePickerInput
                 label="날짜"
                 valueFormat="YYYY-MM-DD"
                 required
+                radius="lg"
+                size="sm"
                 {...form.getInputProps("date")}
               />
               <TimePicker
@@ -509,18 +519,11 @@ export function HomePage() {
                 withDropdown
                 minutesStep={5}
                 hoursStep={1}
+                radius="lg"
+                size="sm"
                 presets={[
-                  "06:00",
-                  "07:00",
-                  "09:00",
-                  "10:00",
-                  "12:00",
-                  "14:00",
-                  "15:00",
-                  "18:00",
-                  "19:00",
-                  "20:00",
-                  "21:00",
+                  "06:00","07:00","09:00","10:00","12:00",
+                  "14:00","15:00","18:00","19:00","20:00","21:00",
                 ]}
                 {...form.getInputProps("time")}
               />
@@ -530,21 +533,26 @@ export function HomePage() {
               min={10}
               max={600}
               step={15}
+              radius="lg"
+              size="sm"
               {...form.getInputProps("durationMin")}
             />
             <Textarea
               label="메모"
               placeholder="특이사항, 준비물, 목표 등"
               autosize
-              minRows={2}
+              minRows={3}
+              radius="lg"
+              size="sm"
               {...form.getInputProps("note")}
             />
-            <Group justify="space-between">
+            <Group justify="space-between" mt="xs">
               {editing ? (
                 <Button
                   variant="subtle"
                   color="red"
                   leftSection={<IconTrash size={14} />}
+                  radius="xl"
                   onClick={() => {
                     if (confirm("이 일정을 삭제할까요?")) {
                       deleteMutation.mutate(editing.id);
@@ -557,13 +565,17 @@ export function HomePage() {
               ) : (
                 <span />
               )}
-              <Group>
-                <Button variant="subtle" onClick={close}>
+              <Group gap="xs">
+                <Button variant="subtle" onClick={close} radius="xl">
                   취소
                 </Button>
                 <Button
                   type="submit"
                   loading={createMutation.isPending || updateMutation.isPending}
+                  radius="xl"
+                  variant="gradient"
+                  gradient={{ from: "teal.6", to: "cyan.5", deg: 135 }}
+                  px="xl"
                 >
                   저장
                 </Button>
