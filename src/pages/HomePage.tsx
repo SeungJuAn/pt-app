@@ -9,7 +9,6 @@ import {
   Card,
   Grid,
   Group,
-  Indicator,
   Loader,
   Modal,
   NumberInput,
@@ -24,7 +23,7 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import { Calendar, DatePickerInput, TimePicker } from "@mantine/dates";
+import { DatePickerInput, TimePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -32,6 +31,8 @@ import {
   IconAlertTriangle,
   IconCalendarEvent,
   IconChartBar,
+  IconChevronLeft,
+  IconChevronRight,
   IconClock,
   IconHistory,
   IconNotebook,
@@ -149,6 +150,26 @@ export function HomePage() {
   const selectedAppointments = (byDate.get(selectedDate) ?? []).sort((a, b) =>
     a.startAt.localeCompare(b.startAt),
   );
+
+  const calendarCells = useMemo(() => {
+    const start = dayjs(viewMonth).startOf("month");
+    const firstDow = start.day();
+    const daysInMonth = start.daysInMonth();
+    const cells: { key: string; day: number; inMonth: boolean }[] = [];
+    for (let i = 0; i < firstDow; i++) {
+      const d = start.subtract(firstDow - i, "day");
+      cells.push({ key: d.format("YYYY-MM-DD"), day: d.date(), inMonth: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ key: start.date(d).format("YYYY-MM-DD"), day: d, inMonth: true });
+    }
+    const remaining = 42 - cells.length;
+    for (let i = 1; i <= remaining; i++) {
+      const d = start.add(daysInMonth - 1 + i, "day");
+      cells.push({ key: d.format("YYYY-MM-DD"), day: d.date(), inMonth: false });
+    }
+    return cells;
+  }, [viewMonth]);
 
   // 회원 레벨 집계
   const memberStats = useMemo(() => {
@@ -292,26 +313,73 @@ export function HomePage() {
       <Grid gap="md">
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder padding="lg" radius="xl">
-            <Calendar
-              date={viewMonth}
-              onDateChange={(d) => setViewMonth(d)}
-              static={false}
-              fullWidth
-              size="md"
-              getDayProps={(date) => ({
-                selected: date === selectedDate,
-                onClick: () => setSelectedDate(date),
-              })}
-              renderDay={(date) => {
-                const day = dayjs(date).date();
-                const count = byDate.get(date)?.length ?? 0;
+            {/* 헤더 */}
+            <Group justify="space-between" mb="sm">
+              <ActionIcon variant="subtle" color="gray" onClick={() => setViewMonth(dayjs(viewMonth).subtract(1, "month").format("YYYY-MM-DD"))}>
+                <IconChevronLeft size={16} />
+              </ActionIcon>
+              <Text fw={700} size="sm">{dayjs(viewMonth).format("YYYY년 M월")}</Text>
+              <ActionIcon variant="subtle" color="gray" onClick={() => setViewMonth(dayjs(viewMonth).add(1, "month").format("YYYY-MM-DD"))}>
+                <IconChevronRight size={16} />
+              </ActionIcon>
+            </Group>
+            {/* 요일 헤더 */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 6 }}>
+              {["일","월","화","수","목","금","토"].map((d, i) => (
+                <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, padding: "2px 0",
+                  color: i === 0 ? "#e03131" : i === 6 ? "#1971c2" : "#868e96" }}>
+                  {d}
+                </div>
+              ))}
+            </div>
+            {/* 날짜 그리드 */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+              {calendarCells.map(({ key, day, inMonth }) => {
+                const isSelected = key === selectedDate;
+                const isToday = key === today;
+                const hasAppt = (byDate.get(key)?.length ?? 0) > 0;
+                const dow = dayjs(key).day();
+                const textColor = !inMonth
+                  ? "#ced4da"
+                  : isSelected
+                  ? "white"
+                  : isToday
+                  ? "var(--mantine-color-teal-7)"
+                  : dow === 0
+                  ? "#e03131"
+                  : dow === 6
+                  ? "#1971c2"
+                  : "inherit";
                 return (
-                  <Indicator size={6} color="teal" offset={-4} disabled={count === 0}>
-                    <div>{day}</div>
-                  </Indicator>
+                  <div
+                    key={key}
+                    onClick={() => setSelectedDate(key)}
+                    style={{
+                      textAlign: "center",
+                      padding: "5px 2px 4px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      background: isSelected
+                        ? "var(--mantine-color-teal-6)"
+                        : isToday
+                        ? "var(--mantine-color-teal-0)"
+                        : "transparent",
+                      transition: "background 100ms ease",
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: isToday || isSelected ? 700 : 400, color: textColor, lineHeight: 1 }}>
+                      {day}
+                    </div>
+                    <div style={{
+                      width: 4, height: 4, borderRadius: "50%", margin: "3px auto 0",
+                      background: hasAppt
+                        ? isSelected ? "rgba(255,255,255,0.85)" : "var(--mantine-color-teal-5)"
+                        : "transparent",
+                    }} />
+                  </div>
                 );
-              }}
-            />
+              })}
+            </div>
           </Card>
         </Grid.Col>
 
