@@ -353,9 +353,9 @@ export function HomePage() {
                         style={{ cursor: "pointer" }}
                         onClick={() => openEdit(a)}
                       >
-                        <Group justify="space-between" wrap="nowrap">
-                          <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
-                            <Group gap="xs" wrap="nowrap">
+                        <Group justify="space-between" wrap="nowrap" align="flex-start">
+                          <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+                            <Group gap="xs" wrap="wrap">
                               <IconClock size={13} color="#64748b" />
                               <Text size="sm" fw={600}>
                                 {dayjs(a.startAt).format("HH:mm")} – {endAt.format("HH:mm")}
@@ -384,7 +384,7 @@ export function HomePage() {
                             </Group>
                             {a.note && <Text size="xs" c="dimmed" lineClamp={1}>{a.note}</Text>}
                           </Stack>
-                          <Stack gap={4} align="center">
+                          <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
                             {a.member && (
                               <Tooltip label="진행 현황" withArrow>
                                 <ActionIcon size="sm" variant="subtle" color="teal" onClick={(e) => { e.stopPropagation(); showHistory(a.member!.id); }}>
@@ -408,7 +408,7 @@ export function HomePage() {
                             )}
                             {a.status === "SCHEDULED" && (
                               <>
-                                <Button size="compact-xs" variant="subtle" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "COMPLETED" } }); }}>
+                                <Button size="compact-xs" variant="light" color="teal" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "COMPLETED" } }); }}>
                                   완료
                                 </Button>
                                 <Button size="compact-xs" variant="subtle" color="red" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "CANCELED" } }); }}>
@@ -419,7 +419,7 @@ export function HomePage() {
                             <ActionIcon size="sm" variant="subtle" color="red" onClick={(e) => { e.stopPropagation(); if (confirm("이 일정을 삭제할까요?")) deleteMutation.mutate(a.id); }}>
                               <IconTrash size={14} />
                             </ActionIcon>
-                          </Stack>
+                          </Group>
                         </Group>
                       </Card>
                     );
