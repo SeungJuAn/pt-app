@@ -34,16 +34,16 @@ export function AppShellLayout() {
       padding="md"
       styles={{
         main: {
-          background: 'linear-gradient(160deg,rgba(240,253,250,0.6) 0%,rgba(240,249,255,0.4) 100%)',
+          background: '#f4f4f5',
           minHeight: '100vh',
         },
       }}
     >
       <AppShell.Header
         style={{
-          background: 'linear-gradient(135deg,#0d9488 0%,#0891b2 100%)',
+          background: '#18181b',
           border: 'none',
-          boxShadow: '0 2px 12px rgba(8,145,178,0.25)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
         }}
       >
         <Group h="100%" px="md" justify="space-between">
@@ -110,7 +110,7 @@ export function AppShellLayout() {
                 component={RouterLink}
                 to={item.to}
                 label={
-                  <Text fw={active ? 700 : 500} size="sm" c={active ? 'teal.7' : 'dark'}>
+                  <Text fw={active ? 700 : 500} size="sm" c={active ? 'dark.9' : 'dark'}>
                     {item.label}
                   </Text>
                 }
@@ -123,11 +123,11 @@ export function AppShellLayout() {
                       width: 34, height: 34, borderRadius: 10,
                       display: 'grid', placeItems: 'center',
                       background: active
-                        ? 'linear-gradient(135deg,#0d9488,#0891b2)'
+                        ? '#18181b'
                         : 'rgba(15,23,42,0.04)',
                       color: active ? 'white' : '#64748b',
                       transition: 'all 180ms ease',
-                      boxShadow: active ? '0 2px 8px rgba(13,148,136,0.3)' : 'none',
+                      boxShadow: active ? '0 2px 8px rgba(0,0,0,0.25)' : 'none',
                     }}
                   >
                     <item.icon size={17} />
@@ -137,8 +137,8 @@ export function AppShellLayout() {
                 variant="subtle"
                 style={{
                   borderRadius: 12,
-                  background: active ? 'rgba(13,148,136,0.06)' : 'transparent',
-                  border: active ? '1px solid rgba(13,148,136,0.12)' : '1px solid transparent',
+                  background: active ? 'rgba(0,0,0,0.05)' : 'transparent',
+                  border: active ? '1px solid rgba(0,0,0,0.08)' : '1px solid transparent',
                   transition: 'all 150ms ease',
                 }}
               />
@@ -152,12 +152,12 @@ export function AppShellLayout() {
           p="sm"
           style={{
             borderRadius: 14,
-            background: 'linear-gradient(135deg,rgba(13,148,136,0.07),rgba(8,145,178,0.05))',
-            border: '1px solid rgba(13,148,136,0.12)',
+            background: 'rgba(0,0,0,0.04)',
+            border: '1px solid rgba(0,0,0,0.08)',
           }}
         >
           <Group gap={6} mb={4}>
-            <Text size="xs" fw={700} c="teal.7">💡 사용 팁</Text>
+            <Text size="xs" fw={700} c="dark.7">💡 사용 팁</Text>
           </Group>
           <Text size="xs" c="dimmed" lh={1.5}>
             회원 카드의 등록권에서 세션을 기록하고, 완료된 등록권은 내역을 펼쳐 볼 수 있어요.

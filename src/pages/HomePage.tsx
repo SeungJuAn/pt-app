@@ -275,7 +275,7 @@ export function HomePage() {
               </Text>
             </Stack>
           </Group>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => openCreate(selectedDate)} variant="white" color="teal.7" radius="xl">
+          <Button leftSection={<IconPlus size={16} />} onClick={() => openCreate(selectedDate)} variant="white" color="dark" radius="xl">
             일정 추가
           </Button>
         </Group>
@@ -344,7 +344,7 @@ export function HomePage() {
                   : isSelected
                   ? "white"
                   : isToday
-                  ? "var(--mantine-color-teal-7)"
+                  ? "#18181b"
                   : dow === 0
                   ? "#e03131"
                   : dow === 6
@@ -360,9 +360,9 @@ export function HomePage() {
                       borderRadius: 8,
                       cursor: "pointer",
                       background: isSelected
-                        ? "var(--mantine-color-teal-6)"
+                        ? "#18181b"
                         : isToday
-                        ? "var(--mantine-color-teal-0)"
+                        ? "rgba(0,0,0,0.07)"
                         : "transparent",
                       transition: "background 100ms ease",
                     }}
@@ -373,7 +373,7 @@ export function HomePage() {
                     <div style={{
                       width: 4, height: 4, borderRadius: "50%", margin: "3px auto 0",
                       background: hasAppt
-                        ? isSelected ? "rgba(255,255,255,0.85)" : "var(--mantine-color-teal-5)"
+                        ? isSelected ? "rgba(255,255,255,0.85)" : "#52525b"
                         : "transparent",
                     }} />
                   </div>
@@ -456,7 +456,7 @@ export function HomePage() {
                           <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
                             {a.member && (
                               <Tooltip label="진행 현황" withArrow>
-                                <ActionIcon size="sm" variant="subtle" color="teal" onClick={(e) => { e.stopPropagation(); showHistory(a.member!.id); }}>
+                                <ActionIcon size="sm" variant="subtle" color="dark" onClick={(e) => { e.stopPropagation(); showHistory(a.member!.id); }}>
                                   <IconChartBar size={14} />
                                 </ActionIcon>
                               </Tooltip>
@@ -477,7 +477,7 @@ export function HomePage() {
                             )}
                             {a.status === "SCHEDULED" && (
                               <>
-                                <Button size="compact-xs" variant="light" color="teal" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "COMPLETED" } }); }}>
+                                <Button size="compact-xs" variant="filled" color="dark" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "COMPLETED" } }); }}>
                                   완료
                                 </Button>
                                 <Button size="compact-xs" variant="subtle" color="red" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: a.id, dto: { status: "CANCELED" } }); }}>
@@ -506,11 +506,11 @@ export function HomePage() {
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Card withBorder radius="xl" padding="lg" style={{ height: "100%" }}>
             <Group gap={8} mb="lg">
-              <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#0d9488,#0891b2)", display: "grid", placeItems: "center" }}>
+              <Box style={{ width: 32, height: 32, borderRadius: 10, background: "#18181b", display: "grid", placeItems: "center" }}>
                 <IconUsers size={17} color="white" />
               </Box>
               <Title order={4}>회원 현황</Title>
-              <Badge variant="light" color="teal" size="sm">총 {memberStats.total}명</Badge>
+              <Badge variant="light" color="dark" size="sm">총 {memberStats.total}명</Badge>
             </Group>
 
             {membersQuery.isLoading ? (
@@ -523,13 +523,13 @@ export function HomePage() {
                     thickness={20}
                     roundCaps
                     sections={[
-                      { value: memberStats.total > 0 ? (memberStats.active / memberStats.total) * 100 : 0, color: "teal" },
-                      { value: memberStats.total > 0 ? (memberStats.consultation / memberStats.total) * 100 : 0, color: "yellow" },
-                      { value: memberStats.total > 0 ? (memberStats.dormant / memberStats.total) * 100 : 0, color: "gray" },
+                      { value: memberStats.total > 0 ? (memberStats.active / memberStats.total) * 100 : 0, color: "dark" },
+                      { value: memberStats.total > 0 ? (memberStats.consultation / memberStats.total) * 100 : 0, color: "gray.5" },
+                      { value: memberStats.total > 0 ? (memberStats.dormant / memberStats.total) * 100 : 0, color: "gray.3" },
                     ]}
                     label={
                       <Stack gap={0} align="center">
-                        <Text fw={800} size="xl" c="teal.7">{memberStats.total}</Text>
+                        <Text fw={800} size="xl" c="dark.8">{memberStats.total}</Text>
                         <Text size="xs" c="dimmed">전체</Text>
                       </Stack>
                     }
@@ -538,8 +538,8 @@ export function HomePage() {
 
                 <SimpleGrid cols={3} spacing="xs">
                   {[
-                    { label: "활성", value: memberStats.active, color: "teal", emoji: "🟢" },
-                    { label: "상담", value: memberStats.consultation, color: "yellow", emoji: "🟡" },
+                    { label: "활성", value: memberStats.active, color: "dark", emoji: "⚫" },
+                    { label: "상담", value: memberStats.consultation, color: "gray", emoji: "🔘" },
                     { label: "휴면", value: memberStats.dormant, color: "gray", emoji: "⚪" },
                   ].map(({ label, value, color, emoji }) => (
                     <Box
@@ -562,8 +562,8 @@ export function HomePage() {
                 <Button
                   component={Link}
                   to="/members"
-                  variant="light"
-                  color="teal"
+                  variant="filled"
+                  color="dark"
                   fullWidth
                   radius="xl"
                   size="sm"
@@ -580,7 +580,7 @@ export function HomePage() {
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Card withBorder radius="xl" padding="lg" style={{ height: "100%" }}>
             <Group gap={8} mb="md">
-              <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#7c3aed,#a855f7)", display: "grid", placeItems: "center" }}>
+              <Box style={{ width: 32, height: 32, borderRadius: 10, background: "#18181b", display: "grid", placeItems: "center" }}>
                 <IconHistory size={17} color="white" />
               </Box>
               <Title order={4}>최근 세션 기록</Title>
@@ -616,8 +616,8 @@ export function HomePage() {
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.background = "rgba(124,58,237,0.05)";
-                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(124,58,237,0.2)";
+                          (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)";
+                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,0,0,0.15)";
                           (e.currentTarget as HTMLDivElement).style.transform = "translateX(2px)";
                         }}
                         onMouseLeave={(e) => {
@@ -634,7 +634,7 @@ export function HomePage() {
                             <Stack gap={1}>
                               <Group gap="xs">
                                 <Text size="sm" fw={700} c="dark">{sessionMember?.name ?? "-"}</Text>
-                                <Badge size="xs" variant="light" color="violet" radius="sm">
+                                <Badge size="xs" variant="light" color="dark" radius="sm">
                                   Day {s.dayNumber}
                                 </Badge>
                               </Group>

@@ -1,8 +1,8 @@
 import { createTheme, rem } from '@mantine/core';
 
 export const theme = createTheme({
-  primaryColor: 'teal',
-  primaryShade: { light: 6, dark: 4 },
+  primaryColor: 'dark',
+  primaryShade: { light: 8, dark: 6 },
   defaultRadius: 'md',
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Roboto, sans-serif',
