@@ -290,13 +290,13 @@ export function HomePage() {
 
       {/* ── 캘린더 + 오늘 일정 ── */}
       <Grid gap="md">
-        <Grid.Col span={{ base: 12, md: 5 }}>
-          <Card withBorder padding="md" radius="xl">
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Card withBorder padding="lg" radius="xl">
             <Calendar
               date={viewMonth}
               onDateChange={(d) => setViewMonth(d)}
               static={false}
-              size="sm"
+              size="md"
               getDayProps={(date) => ({
                 selected: date === selectedDate,
                 onClick: () => setSelectedDate(date),
@@ -314,7 +314,7 @@ export function HomePage() {
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 7 }}>
+        <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder padding="lg" radius="xl" style={{ height: "100%" }}>
             <Stack>
               <Group justify="space-between" align="center">
@@ -430,77 +430,6 @@ export function HomePage() {
           </Card>
         </Grid.Col>
       </Grid>
-
-      {/* ── 수강권 소진 임박 ── */}
-      <Card withBorder radius="xl" padding="lg">
-        <Group gap={8} mb="md">
-          <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#d97706,#f59e0b)", display: "grid", placeItems: "center" }}>
-            <IconAlertTriangle size={17} color="white" />
-          </Box>
-          <Title order={4}>수강권 소진 임박</Title>
-          {nearlyDoneEnrollments.length > 0 && (
-            <Badge color="orange" variant="filled" size="sm">{nearlyDoneEnrollments.length}건</Badge>
-          )}
-        </Group>
-
-        {enrollmentsQuery.isLoading ? (
-          <Loader size="sm" />
-        ) : nearlyDoneEnrollments.length === 0 ? (
-          <Box style={{ textAlign: "center", padding: "20px 0" }}>
-            <Text size="xl" mb={4}>✅</Text>
-            <Text size="sm" c="dimmed">소진 임박 수강권이 없습니다.</Text>
-          </Box>
-        ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
-            {nearlyDoneEnrollments.map((e) => {
-              const remaining = e.totalSessions - (e.usedSessions ?? 0);
-              const percent = Math.min(100, ((e.usedSessions ?? 0) / e.totalSessions) * 100);
-              const urgentColor = remaining === 0 ? "red" : remaining === 1 ? "orange" : "yellow";
-              return (
-                <Box
-                  key={e.id}
-                  component={Link}
-                  to={e.member ? `/members/${e.member.id}` : "#"}
-                  style={{ textDecoration: "none" }}
-                >
-                  <Card
-                    withBorder
-                    radius="xl"
-                    padding="md"
-                    style={{
-                      borderColor: remaining === 0 ? "#fca5a5" : remaining === 1 ? "#fed7aa" : "#fef08a",
-                      background: remaining === 0 ? "rgba(220,38,38,0.04)" : remaining === 1 ? "rgba(249,115,22,0.04)" : "rgba(234,179,8,0.04)",
-                      cursor: "pointer",
-                      transition: "transform 120ms ease",
-                    }}
-                    onMouseEnter={(ev) => ((ev.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)")}
-                    onMouseLeave={(ev) => ((ev.currentTarget as HTMLDivElement).style.transform = "none")}
-                  >
-                    <Group justify="space-between" mb="xs">
-                      <Group gap="xs">
-                        <Avatar size={32} radius="xl" color={e.member ? avatarColor(e.member.name) : "gray"} variant="light">
-                          {e.member ? initials(e.member.name) : "?"}
-                        </Avatar>
-                        <Stack gap={0}>
-                          <Text size="sm" fw={700}>{e.member?.name ?? "알 수 없음"}</Text>
-                          <Text size="xs" c="dimmed">{e.totalSessions}회권</Text>
-                        </Stack>
-                      </Group>
-                      <Badge color={urgentColor} variant="filled" size="sm" radius="xl">
-                        잔여 {remaining}회
-                      </Badge>
-                    </Group>
-                    <Progress value={percent} size="sm" radius="xl" color={urgentColor} />
-                    <Text size="xs" c="dimmed" mt={4} ta="right">
-                      {e.usedSessions ?? 0} / {e.totalSessions}회 완료
-                    </Text>
-                  </Card>
-                </Box>
-              );
-            })}
-          </SimpleGrid>
-        )}
-      </Card>
 
       {/* ── 회원 현황 + 최근 세션 ── */}
       <Grid gap="md">
@@ -669,6 +598,77 @@ export function HomePage() {
           </Card>
         </Grid.Col>
       </Grid>
+
+      {/* ── 수강권 소진 임박 ── */}
+      <Card withBorder radius="xl" padding="lg">
+        <Group gap={8} mb="md">
+          <Box style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#d97706,#f59e0b)", display: "grid", placeItems: "center" }}>
+            <IconAlertTriangle size={17} color="white" />
+          </Box>
+          <Title order={4}>수강권 소진 임박</Title>
+          {nearlyDoneEnrollments.length > 0 && (
+            <Badge color="orange" variant="filled" size="sm">{nearlyDoneEnrollments.length}건</Badge>
+          )}
+        </Group>
+
+        {enrollmentsQuery.isLoading ? (
+          <Loader size="sm" />
+        ) : nearlyDoneEnrollments.length === 0 ? (
+          <Box style={{ textAlign: "center", padding: "20px 0" }}>
+            <Text size="xl" mb={4}>✅</Text>
+            <Text size="sm" c="dimmed">소진 임박 수강권이 없습니다.</Text>
+          </Box>
+        ) : (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
+            {nearlyDoneEnrollments.map((e) => {
+              const remaining = e.totalSessions - (e.usedSessions ?? 0);
+              const percent = Math.min(100, ((e.usedSessions ?? 0) / e.totalSessions) * 100);
+              const urgentColor = remaining === 0 ? "red" : remaining === 1 ? "orange" : "yellow";
+              return (
+                <Box
+                  key={e.id}
+                  component={Link}
+                  to={e.member ? `/members/${e.member.id}` : "#"}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Card
+                    withBorder
+                    radius="xl"
+                    padding="md"
+                    style={{
+                      borderColor: remaining === 0 ? "#fca5a5" : remaining === 1 ? "#fed7aa" : "#fef08a",
+                      background: remaining === 0 ? "rgba(220,38,38,0.04)" : remaining === 1 ? "rgba(249,115,22,0.04)" : "rgba(234,179,8,0.04)",
+                      cursor: "pointer",
+                      transition: "transform 120ms ease",
+                    }}
+                    onMouseEnter={(ev) => ((ev.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)")}
+                    onMouseLeave={(ev) => ((ev.currentTarget as HTMLDivElement).style.transform = "none")}
+                  >
+                    <Group justify="space-between" mb="xs">
+                      <Group gap="xs">
+                        <Avatar size={32} radius="xl" color={e.member ? avatarColor(e.member.name) : "gray"} variant="light">
+                          {e.member ? initials(e.member.name) : "?"}
+                        </Avatar>
+                        <Stack gap={0}>
+                          <Text size="sm" fw={700}>{e.member?.name ?? "알 수 없음"}</Text>
+                          <Text size="xs" c="dimmed">{e.totalSessions}회권</Text>
+                        </Stack>
+                      </Group>
+                      <Badge color={urgentColor} variant="filled" size="sm" radius="xl">
+                        잔여 {remaining}회
+                      </Badge>
+                    </Group>
+                    <Progress value={percent} size="sm" radius="xl" color={urgentColor} />
+                    <Text size="xs" c="dimmed" mt={4} ta="right">
+                      {e.usedSessions ?? 0} / {e.totalSessions}회 완료
+                    </Text>
+                  </Card>
+                </Box>
+              );
+            })}
+          </SimpleGrid>
+        )}
+      </Card>
 
       <MemberHistoryModal memberId={historyMemberId} opened={historyOpened} onClose={closeHistory} />
 

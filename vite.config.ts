@@ -6,4 +6,5 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/pt-app/' : '/',
   plugins: [react()],
+  server: { port: 5223 },
 }));
