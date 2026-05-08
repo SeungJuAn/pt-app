@@ -113,15 +113,19 @@ export function MemberFormModal({
       title={mode === 'edit' ? '회원 정보 수정' : '회원 추가'}
       centered
       size="md"
+      radius="xl"
+      padding="xl"
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          <TextInput label="이름" required {...form.getInputProps('name')} />
-          <Group grow>
+        <Stack gap="md">
+          <TextInput label="이름" required radius="lg" size="sm" {...form.getInputProps('name')} />
+          <Group grow gap="sm">
             <Select
               label="성별"
               placeholder="선택"
               clearable
+              radius="lg"
+              size="sm"
               data={[
                 { value: 'MALE', label: '남' },
                 { value: 'FEMALE', label: '여' },
@@ -132,12 +136,16 @@ export function MemberFormModal({
               label="나이"
               min={1}
               max={120}
+              radius="lg"
+              size="sm"
               {...form.getInputProps('age')}
             />
           </Group>
           <TextInput
             label="직장"
             placeholder="예: 회사원, 학생, 자영업"
+            radius="lg"
+            size="sm"
             {...form.getInputProps('occupation')}
           />
           <Textarea
@@ -145,6 +153,8 @@ export function MemberFormModal({
             placeholder="예: PT 경험 없음 / 헬스 6개월 / 요가 1년"
             autosize
             minRows={2}
+            radius="lg"
+            size="sm"
             {...form.getInputProps('ptExperience')}
           />
           <TextInput
@@ -152,12 +162,11 @@ export function MemberFormModal({
             placeholder="010-0000-0000"
             inputMode="numeric"
             maxLength={13}
+            radius="lg"
+            size="sm"
             {...form.getInputProps('phone')}
             onChange={(e) =>
-              form.setFieldValue(
-                'phone',
-                formatPhone(e.currentTarget.value),
-              )
+              form.setFieldValue('phone', formatPhone(e.currentTarget.value))
             }
           />
           <Textarea
@@ -165,13 +174,22 @@ export function MemberFormModal({
             placeholder="목표, 부상 이력, 식단 제한 등"
             autosize
             minRows={2}
+            radius="lg"
+            size="sm"
             {...form.getInputProps('memo')}
           />
-          <Group justify="flex-end">
-            <Button variant="subtle" onClick={onClose}>
+          <Group justify="flex-end" mt="xs">
+            <Button variant="subtle" onClick={onClose} radius="xl">
               취소
             </Button>
-            <Button type="submit" loading={isSubmitting}>
+            <Button
+              type="submit"
+              loading={isSubmitting}
+              radius="xl"
+              variant="gradient"
+              gradient={{ from: 'teal.6', to: 'cyan.5', deg: 135 }}
+              px="xl"
+            >
               {mode === 'edit' ? '저장' : '추가'}
             </Button>
           </Group>
