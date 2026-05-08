@@ -4,6 +4,7 @@ import type { CreateSessionDto, Session } from '../types';
 export type UpdateSessionDto = Partial<Omit<CreateSessionDto, 'enrollmentId'>>;
 
 export const sessionsApi = {
+  listRecent: (limit = 5) => api<Session[]>(`/sessions?limit=${limit}`),
   listByEnrollment: (enrollmentId: string) =>
     api<Session[]>(
       `/sessions?enrollmentId=${encodeURIComponent(enrollmentId)}`,

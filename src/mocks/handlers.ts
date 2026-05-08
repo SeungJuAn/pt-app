@@ -272,19 +272,22 @@ export const handlers = [
     const url = new URL(request.url);
     const memberId = url.searchParams.get('memberId');
     const enrollmentId = url.searchParams.get('enrollmentId');
+    const limit = url.searchParams.get('limit');
     let list = db.sessions as SessionWithMeta[];
     if (memberId) list = list.filter((s) => s.memberId === memberId);
     if (enrollmentId)
       list = list.filter((s) => s.enrollmentId === enrollmentId);
-    const sorted = list
-      .slice()
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .map(({ memberId: _m, enrollmentId: _e, ...rest }) => {
-        void _m;
-        void _e;
-        return rest;
-      });
-    return HttpResponse.json(sorted);
+    let sorted = list.slice().sort((a, b) => b.date.localeCompare(a.date));
+    if (limit) sorted = sorted.slice(0, Math.max(1, Number(limit)));
+    return HttpResponse.json(
+      sorted.map(({ memberId: _m, enrollmentId: _e, ...rest }) => {
+        const member = db.members.find((m) => m.id === _m);
+        return {
+          ...rest,
+          member: member ? { id: member.id, name: member.name } : undefined,
+        };
+      }),
+    );
   }),
 
   http.get(`${API}/sessions/:id`, ({ params }) => {

@@ -6,6 +6,7 @@ import type {
 } from '../types';
 
 export const enrollmentsApi = {
+  listAll: () => api<Enrollment[]>('/enrollments'),
   listByMember: (memberId: string) =>
     api<Enrollment[]>(`/enrollments?memberId=${encodeURIComponent(memberId)}`),
   get: (id: string) => api<Enrollment>(`/enrollments/${id}`),
