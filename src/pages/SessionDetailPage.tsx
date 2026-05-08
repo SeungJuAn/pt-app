@@ -211,7 +211,7 @@ export function SessionDetailPage() {
         </Group>
       </Card>
 
-      <Grid gutter="md">
+      <Grid gap="md">
         {/* 왼쪽: 컨디션 + 신체 */}
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Stack gap="md">
@@ -246,7 +246,7 @@ export function SessionDetailPage() {
 
               <Divider my="xs" />
 
-              <Grid gutter="xs">
+              <Grid gap="xs">
                 {checks.condition && (
                   <Grid.Col span={12}>
                     <Group gap="xs">
