@@ -437,7 +437,7 @@ export function SessionCreatePage() {
         </Group>
       </Card>
 
-      <Grid gutter="md">
+      <Grid gap="md">
         {/* ── 왼쪽 사이드바 ── */}
         <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
           <Stack gap="md">
@@ -723,7 +723,7 @@ export function SessionCreatePage() {
                             >
                               {entryIdx + 1}
                             </Badge>
-                            <Grid align="flex-end" gutter="xs" style={{ flex: 1 }}>
+                            <Grid align="flex-end" gap="xs" style={{ flex: 1 }}>
                               <Grid.Col span={{ base: 12, sm: 7 }}>
                                 <Select
                                   placeholder="운동 선택"

@@ -39,7 +39,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { enrollmentsApi } from '../api/enrollments';
 import { membersApi } from '../api/members';
@@ -200,7 +199,7 @@ function EnrollmentCard({
           >
             세션 내역 {sessions.length}건 {showSessions ? '접기' : '보기'}
           </Button>
-          <Collapse in={showSessions}>
+          <Collapse expanded={showSessions}>
             <Stack gap={4} mt="sm">
               {sessions.map((s) => {
                 const perf = s.performance ? PERF_META[s.performance as 'GOOD' | 'NORMAL' | 'BAD'] : null;
@@ -278,7 +277,6 @@ export function MemberDetailPage() {
   const queryClient = useQueryClient();
   const [opened, { open, close }] = useDisclosure(false);
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
-  const [_expandedEnrollment, setExpandedEnrollment] = useState<string | null>(null);
 
   const memberQuery = useQuery({
     queryKey: ['members', id],
