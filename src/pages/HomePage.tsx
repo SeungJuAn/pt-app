@@ -296,6 +296,7 @@ export function HomePage() {
               date={viewMonth}
               onDateChange={(d) => setViewMonth(d)}
               static={false}
+              fullWidth
               size="md"
               getDayProps={(date) => ({
                 selected: date === selectedDate,
