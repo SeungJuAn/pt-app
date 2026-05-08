@@ -290,14 +290,13 @@ export function HomePage() {
 
       {/* ── 캘린더 + 오늘 일정 ── */}
       <Grid gap="md">
-        <Grid.Col span={{ base: 12, md: 7 }}>
-          <Card withBorder padding="lg" radius="xl">
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          <Card withBorder padding="md" radius="xl">
             <Calendar
               date={viewMonth}
               onDateChange={(d) => setViewMonth(d)}
               static={false}
-              fullWidth
-              size="md"
+              size="sm"
               getDayProps={(date) => ({
                 selected: date === selectedDate,
                 onClick: () => setSelectedDate(date),
@@ -315,7 +314,7 @@ export function HomePage() {
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 5 }}>
+        <Grid.Col span={{ base: 12, md: 7 }}>
           <Card withBorder padding="lg" radius="xl" style={{ height: "100%" }}>
             <Stack>
               <Group justify="space-between" align="center">
